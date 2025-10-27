@@ -55,6 +55,10 @@
 		#users-pagination button.active{background:#0f52ba;color:#fff;border-color:#0f52ba}
 
 		#users-table-info{color:#94a3b8;font-size:.9rem}
+
+		/* Toast notification */
+		#toast{display:none;position:fixed;bottom:20px;right:20px;background:#fff;color:#0f172a;padding:12px 24px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:9999;animation:slideIn 0.3s ease-out}
+		@keyframes slideIn{from{transform:translateY(100px);opacity:0}to{transform:translateY(0);opacity:1}}
 	</style>
 </head>
 <body>
@@ -79,6 +83,9 @@
 		</div>
 	</header>
 
+	<!-- Toast notification container -->
+	<div id="toast"></div>
+
 	<main class="container">
 		<h1>Complainants</h1>
 		<p style="color:#475569">Manage user accounts from here.</p>
@@ -92,7 +99,6 @@
 				<input id="user-search" placeholder="Search by name..." style="flex:1;padding:.6rem .9rem;border:1px solid #e2e8f0;border-radius:8px;background:#fff" />
 				<!-- status filter removed -->
 				<div style="display:flex;gap:.5rem;align-items:center">
-					<button id="add-user-btn" style="background:#0f52ba;color:#fff;border:none;padding:.6rem .9rem;border-radius:12px;cursor:pointer">Add Complainant</button>
 					<button id="add-admin-btn" style="background:#06b6d4;color:#fff;border:none;padding:.6rem .9rem;border-radius:12px;cursor:pointer">Add Admin</button>
 					<button id="toggle-admins-btn" style="background:#fff;border:1px solid #e6eef9;padding:.5rem .8rem;border-radius:12px;cursor:pointer">Show Admins</button>
 				</div>
@@ -167,6 +173,20 @@
 			return true;
 		}
 		function logout(){ localStorage.removeItem('cw_token'); localStorage.removeItem('cw_user'); localStorage.removeItem('cw_user_role'); window.location.href='CityWatch-Login-New.html'; }
+
+		// Toast notification function
+		function showToast(message, duration = 3000) {
+			const toast = document.getElementById('toast');
+			if (!toast) return;
+			
+			toast.textContent = message;
+			toast.style.display = 'block';
+			
+			setTimeout(() => {
+				toast.style.display = 'none';
+			}, duration);
+		}
+
 		document.addEventListener('DOMContentLoaded', ()=>{
 			if(!ensureAdmin()) return;
 			try{ const user = JSON.parse(localStorage.getItem('cw_user')||'{}'); const name = user.name||'Admin'; document.getElementById('user-name').textContent = name; document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase(); }catch(_){}
@@ -327,12 +347,8 @@
 		// Modal and CRUD wiring
 		const modal = document.getElementById('user-modal');
 		const modalTitle = document.getElementById('user-modal-title');
-	const btnAdd = document.getElementById('add-user-btn');
-	const btnAddAdmin = document.getElementById('add-admin-btn');
-	const btnClose = document.getElementById('user-modal-close');
-	const btnCancel = document.getElementById('user-cancel');
-	const btnSave = document.getElementById('user-save');
-	const userError = document.getElementById('user-error');
+		const btnSave = document.getElementById('user-save');
+		const userError = document.getElementById('user-error');
 		const form = document.getElementById('user-form');
 
 		function clearUserError(){ if(userError){ userError.style.display='none'; userError.textContent=''; } }
@@ -348,23 +364,35 @@
 			const pwd = document.getElementById('u-password').value;
 			try{
 				const token = localStorage.getItem('cw_token');
-				// client-side validation: require password for creations
-				if(mode==='create' || mode==='create-admin'){
-					if(!pwd || pwd.trim().length < 6){
+				// handle admin creation
+				if(mode === 'create-admin') {
+					if(!pwd || pwd.trim().length < 6) {
 						setUserError('Please provide a password of at least 6 characters.');
 						return;
 					}
 					payload.password = pwd;
-					if(roleFlag) payload.role = roleFlag; // set admin role when requested
-					const res = await fetch((window.API_BASE||'http://localhost:3000') + '/api/admin/users', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+token }, body: JSON.stringify(payload) });
-					if(!res.ok){
-						const text = await res.text(); let data; try{ data = JSON.parse(text); }catch(e){}
-						const msg = (data && (data.message||data.error)) || text || 'Create failed';
+					payload.role = 'admin';
+					
+					const res = await fetch((window.API_BASE||'http://localhost:3000') + '/api/admin/users', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							'Authorization': 'Bearer ' + token
+						},
+						body: JSON.stringify(payload)
+					});
+					
+					if(!res.ok) {
+						const text = await res.text();
+						let data;
+						try { data = JSON.parse(text); } catch(e) {}
+						const msg = (data && (data.message||data.error)) || text || 'Failed to create admin';
 						throw new Error(msg);
 					}
-					showToast(roleFlag === 'admin' ? 'Admin created' : 'User created');
-					// refresh correct list
-					if(roleFlag === 'admin') await loadAndRenderAdmins(); else await loadAndRenderUsers();
+					
+					showToast('Admin account created');
+					await loadAndRenderAdmins();
+					closeUserModal();
 				}else{
 					// update: password optional but if provided must be >=6 chars
 					if(pwd){ if(pwd.trim().length < 6){ setUserError('Password must be at least 6 characters'); return; } payload.password = pwd; }
@@ -423,47 +451,56 @@
 		});
 
 		// open modal helper
-		function openUserModal(mode, user){
-			// mode: 'create', 'create-admin', 'edit', 'view'
-			modal.style.display='flex'; modal.setAttribute('aria-hidden','false');
-			btnSave.setAttribute('data-mode', mode || 'create');
-			// reset error
+		function openUserModal(mode, user) {
+			modal.style.display = 'flex';
+			modal.setAttribute('aria-hidden', 'false');
+			btnSave.setAttribute('data-mode', mode || 'create-admin');
+			
+			// reset error and fields
 			clearUserError();
-			// default fields
 			document.getElementById('u-id').value = '';
 			document.getElementById('u-name').value = '';
 			document.getElementById('u-email').value = '';
 			document.getElementById('u-password').value = '';
 			btnSave.removeAttribute('data-role');
-			if(mode === 'create-admin'){
-				modalTitle.textContent = 'Create Admin';
-				btnSave.setAttribute('data-role','admin');
-				btnSave.setAttribute('data-mode','create-admin');
-				document.getElementById('u-password').placeholder = 'Password (required)';
-			} else if(mode === 'create'){
-				modalTitle.textContent = 'Add Complainant';
-				btnSave.setAttribute('data-mode','create');
-				document.getElementById('u-password').placeholder = 'New Password (required)';
-			} else if(mode === 'edit'){
-				modalTitle.textContent = 'Edit User';
-				btnSave.setAttribute('data-mode','edit');
-				if(user){ document.getElementById('u-id').value = user._id || user.id || ''; document.getElementById('u-name').value = user.name || ''; document.getElementById('u-email').value = user.email || ''; }
-				document.getElementById('u-password').placeholder = 'New Password (leave blank to keep current)';
-			} else if(mode === 'view'){
-				modalTitle.textContent = 'View User';
-				btnSave.setAttribute('data-mode','view');
-				if(user){ document.getElementById('u-id').value = user._id || user.id || ''; document.getElementById('u-name').value = user.name || ''; document.getElementById('u-email').value = user.email || ''; }
-				document.getElementById('u-password').placeholder = 'Password hidden';
+			
+			switch(mode) {
+				case 'create-admin':
+					modalTitle.textContent = 'Create Admin';
+					btnSave.setAttribute('data-role', 'admin');
+					btnSave.setAttribute('data-mode', 'create-admin');
+					document.getElementById('u-password').placeholder = 'Password (required)';
+					btnSave.style.display = '';
+					break;
+				case 'edit':
+					modalTitle.textContent = 'Edit User';
+					btnSave.setAttribute('data-mode', 'edit');
+					if (user) {
+						document.getElementById('u-id').value = user._id || user.id || '';
+						document.getElementById('u-name').value = user.name || '';
+						document.getElementById('u-email').value = user.email || '';
+					}
+					document.getElementById('u-password').placeholder = 'New Password (leave blank to keep current)';
+					btnSave.style.display = '';
+					break;
+				case 'view':
+					modalTitle.textContent = 'View User';
+					btnSave.setAttribute('data-mode', 'view');
+					if (user) {
+						document.getElementById('u-id').value = user._id || user.id || '';
+						document.getElementById('u-name').value = user.name || '';
+						document.getElementById('u-email').value = user.email || '';
+					}
+					document.getElementById('u-password').placeholder = 'Password hidden';
+					btnSave.style.display = 'none';
+					break;
 			}
-			// disable save for view
-			if(mode === 'view') btnSave.style.display = 'none'; else btnSave.style.display = '';
 		}
 
 		// wire add buttons
-		btnAdd && btnAdd.addEventListener('click', ()=> openUserModal('create'));
-		btnAddAdmin && btnAddAdmin.addEventListener('click', ()=> openUserModal('create-admin'));
-		btnClose && btnClose.addEventListener('click', ()=> closeUserModal());
-		btnCancel && btnCancel.addEventListener('click', ()=> closeUserModal());
+		document.getElementById('add-admin-btn')?.addEventListener('click', () => openUserModal('create-admin'));
+		document.getElementById('user-modal-close')?.addEventListener('click', () => closeUserModal());
+		document.getElementById('user-cancel')?.addEventListener('click', () => closeUserModal());
 	</script>
 </body>
 </html>

@@ -30,6 +30,26 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Email verification status and verification code
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    verificationCode: {
+      type: String,
+    },
+    verificationCodeExpires: {
+      type: Date,
+    },
+    // Password reset token and expiry (optional, used by forgot/reset flow)
+    resetPasswordToken: {
+      type: String,
+      default: undefined,
+    },
+    resetPasswordExpires: {
+      type: Date,
+      default: undefined,
+    },
   },
   { timestamps: true }
 );

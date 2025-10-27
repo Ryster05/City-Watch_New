@@ -59,19 +59,15 @@ if (signupForm) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password: pw, role: 'user' })
       });
-      let data = null;
-      const text = await res.text();
-      try { data = text ? JSON.parse(text) : null; } catch {}
+
+      const data = await res.json();
       if (!res.ok) {
-        const msg = (data && data.message) || text || `Signup failed (${res.status})`;
-        alert(msg);
+        alert(data.message || 'Signup failed. Please try again.');
         return;
       }
 
-      localStorage.setItem('cw_token', data.token);
-      localStorage.setItem('cw_user', JSON.stringify(data.user));
-  // Redirect to current login page
-  window.location.href = 'CityWatch-Login-New.html';
+      // Redirect to verification page with email
+      window.location.href = `CityWatch-Verify-Email.html?email=${encodeURIComponent(email)}`;
     } catch (err) {
       alert(`Network error: ${err?.message || err}`);
     }

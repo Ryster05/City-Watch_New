@@ -149,6 +149,14 @@ if (loginForm) {
       const data = await response.json();
 
       if (!response.ok) {
+        // If email needs verification, redirect to verification page
+        if (data.needsVerification) {
+          showStatus('Please verify your email to continue.', 'info');
+          setTimeout(() => {
+            window.location.href = `CityWatch-Verify-Email.html?email=${encodeURIComponent(data.email)}`;
+          }, 1500);
+          return;
+        }
         showStatus(data.message || 'Login failed. Please try again.', 'error');
         setLoading(loginBtn, false);
         return;
@@ -283,6 +291,8 @@ document.getElementById('signup-confirm-password').addEventListener('input', fun
     this.style.borderColor = '#e5e7eb';
   }
 });
+
+// Forgot password link now redirects to the reset password page
 
 // Auto-focus first input
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>City Watch - Admin Users</title>
+	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+	<link href="notification-bell.css" rel="stylesheet">
+	<script src="notification-bell.js" defer></script>
+	<style>
+		*{box-sizing:border-box;margin:0;padding:0}
+		body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;background:#f3f6fa;color:#1e293b}
+		/* Header copied from user-side to match exact logo, shapes and spacing */
+		.header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+		.header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+		.logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+		.logo i { font-size: 2rem; }
+		.admin-nav, .nav { display:flex; gap:2rem; align-items:center; }
+		.admin-nav a, .nav a { color:#374151; text-decoration:none; font-weight:500; transition: color 0.2s; padding:6px 8px; border-radius:6px; }
+		.admin-nav a:hover, .admin-nav a.active, .nav a:hover, .nav a.active { color:#2563eb; }
+		.user-menu { display:flex; align-items:center; gap:1rem; }
+		.user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem }
+		.logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer; font-weight:600; transition: background-color 0.2s; }
+		.logout-btn:hover { background:#b91c1c; }
+		.container{max-width:1200px;margin:1.25rem auto;padding:0 20px}
+		h1{color:#0f172a;margin:8px 0 18px;font-size:1.4rem}
+
+		/* stat card */
+		.card-stat{background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #eef4ff; box-shadow: 0 6px 18px rgba(2,6,23,0.04);}
+
+		/* search and controls */
+		.select{padding:.6rem .85rem;border-radius:12px;border:1px solid #e9eef8;background:#fff}
+		#user-search{padding:.85rem 1rem;border-radius:16px;border:1px solid #e9eef8;background:#fff;box-shadow:0 6px 18px rgba(2,6,23,0.03);}
+
+		/* table */
+		.table-wrap{background:transparent;border-radius:8px;overflow:hidden}
+		table{width:100%;border-collapse:collapse}
+		thead th{background:#0f52ba;color:#fff;padding:1rem;border:none;text-align:left}
+		tbody tr{background:#fff}
+		tbody tr:nth-child(odd){background:#f1f5fb}
+		tbody td{padding:.9rem 1rem;border-top:none;color:#0f172a}
+
+		.badge{padding:.28rem .6rem;border-radius:999px;font-size:.82rem}
+		.badge.active{background:#ecfdf5;color:#065f46}
+		.badge.pending{background:#fff7ed;color:#92400e}
+		.badge.inactive{background:#fff1f2;color:#9b1c1c}
+
+		/* action pills */
+		.btn-approve{background:#e6f4ff;border:1px solid #cfe9ff;color:#0f52ba;padding:.35rem .6rem;border-radius:12px;margin-right:.35rem;cursor:pointer}
+		.btn-reject{background:#fff4f6;border:1px solid #f5c6cb;color:#dc2626;padding:.35rem .6rem;border-radius:12px;margin-right:.35rem;cursor:pointer}
+		.btn-delete{background:#fff;border:1px solid #e6eef9;color:#64748b;padding:.35rem .6rem;border-radius:12px;cursor:pointer}
+
+		/* pagination */
+		#users-pagination button{background:#fff;border:1px solid #e6eef9;padding:6px 9px;border-radius:6px;cursor:pointer}
+		#users-pagination button.active{background:#0f52ba;color:#fff;border-color:#0f52ba}
+
+		#users-table-info{color:#94a3b8;font-size:.9rem}
+	</style>
+</head>
+<body>
+	<header class="header">
+		<div class="header-content">
+			<a href="CityWatch-Admin-Dashboard.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+			<nav class="admin-nav">
+				<a href="CityWatch-Admin-Dashboard.html">Dashboard</a>
+				<a href="CityWatch-Admin-Reports.html">Reports</a>
+				<a href="CityWatch-Admin-User.html" class="active">Users</a>
+				<a href="CityWatch-Admin-Analytics.html">Analytics</a>
+				<a href="CityWatch-Admin-Notification.html">Notifications</a>
+			</nav>
+			<div class="user-menu">
+				<div id="notification-bell"></div>
+				<div style="display:flex;align-items:center;gap:8px">
+					<div class="user-avatar" id="user-avatar">A</div>
+					<span id="user-name">Admin</span>
+				</div>
+				<button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="container">
+		<h1>Complainants</h1>
+		<p style="color:#475569">Manage user accounts from here.</p>
+
+		<div style="display:flex;gap:1rem;align-items:center;margin:14px 0">
+			<div class="card-stat">
+				<div style="color:#64748b;font-size:.9rem">Total Complainants</div>
+				<div id="total-users" style="font-weight:800;font-size:1.6rem;color:#0f172a;margin-top:6px">0</div>
+			</div>
+			<div style="flex:1;display:flex;gap:.6rem;align-items:center">
+				<input id="user-search" placeholder="Search by name..." style="flex:1;padding:.6rem .9rem;border:1px solid #e2e8f0;border-radius:8px;background:#fff" />
+				<!-- status filter removed -->
+				<div style="display:flex;gap:.5rem;align-items:center">
+					<button id="add-user-btn" style="background:#0f52ba;color:#fff;border:none;padding:.6rem .9rem;border-radius:12px;cursor:pointer">Add Complainant</button>
+					<button id="add-admin-btn" style="background:#06b6d4;color:#fff;border:none;padding:.6rem .9rem;border-radius:12px;cursor:pointer">Add Admin</button>
+					<button id="toggle-admins-btn" style="background:#fff;border:1px solid #e6eef9;padding:.5rem .8rem;border-radius:12px;cursor:pointer">Show Admins</button>
+				</div>
+			</div>
+		</div>
+
+		<div class="table-wrap">
+			<!-- Complainants table (default) -->
+			<table id="complainants-table" style="width:100%;border-collapse:collapse">
+				<thead>
+					<tr>
+						<th style="width:22%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Name</th>
+						<th style="width:28%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Email</th>
+						<th style="width:24%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Date Registered</th>
+						<th style="width:26%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Action</th>
+					</tr>
+				</thead>
+				<tbody id="users-table-body"></tbody>
+			</table>
+
+			<!-- Admins table (hidden by default) -->
+			<table id="admins-table" style="width:100%;border-collapse:collapse;display:none">
+				<thead>
+					<tr>
+						<th style="width:18%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Admin Name</th>
+						<th style="width:28%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Email</th>
+						<th style="width:18%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Role</th>
+						<th style="width:18%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Created</th>
+						<th style="width:18%;background:#0f52ba;color:#fff;padding:.85rem 1rem;text-align:left">Action</th>
+					</tr>
+				</thead>
+				<tbody id="admins-table-body"></tbody>
+			</table>
+			<div style="padding:10px;display:flex;justify-content:space-between;align-items:center">
+				<div id="users-table-info" style="color:#94a3b8;font-size:.9rem">Showing 0 entries</div>
+				<div id="users-pagination" style="display:flex;gap:6px;align-items:center"></div>
+			</div>
+		</div>
+
+		<!-- User modal (create/edit/view) -->
+		<div id="user-modal" class="modal" aria-hidden="true" style="display:none;position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(2,6,23,0.5);align-items:center;justify-content:center;z-index:1200">
+			<div style="background:#fff;border-radius:12px;max-width:620px;width:100%;padding:18px;box-shadow:0 12px 30px rgba(2,6,23,0.2)">
+				<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+					<div style="font-weight:700;font-size:1.1rem" id="user-modal-title">Add Complainant</div>
+					<button id="user-modal-close" style="background:transparent;border:0;font-size:18px;cursor:pointer">✕</button>
+				</div>
+				<form id="user-form">
+					<div style="display:flex;gap:10px;margin-bottom:8px">
+						<input id="u-name" placeholder="Full name" style="flex:1;padding:.6rem .8rem;border:1px solid #e6eef9;border-radius:8px" required />
+						<input id="u-email" placeholder="Email" style="flex:1;padding:.6rem .8rem;border:1px solid #e6eef9;border-radius:8px" required />
+					</div>
+					<div style="display:flex;gap:10px;margin-bottom:8px;align-items:center">
+						<input id="u-password" placeholder="New Password (leave blank to keep current)" type="password" style="flex:1;padding:.6rem .8rem;border:1px solid #e6eef9;border-radius:8px" />
+					</div>
+					<div id="user-error" style="color:#b91c1c;display:none;margin-bottom:8px;font-weight:700"></div>
+					<div style="display:flex;gap:8px;justify-content:flex-end">
+						<button type="button" id="user-save" style="background:#0f52ba;color:#fff;border:none;padding:.6rem .9rem;border-radius:10px;cursor:pointer">Save</button>
+						<button type="button" id="user-cancel" style="background:#fff;border:1px solid #e6eef9;padding:.6rem .9rem;border-radius:10px;cursor:pointer">Cancel</button>
+					</div>
+					<input type="hidden" id="u-id" />
+				</form>
+			</div>
+		</div>
+	</main>
+
+	<script>
+		function ensureAdmin(){
+			const token = localStorage.getItem('cw_token');
+			const role = localStorage.getItem('cw_user_role');
+			if(!token){ window.location.href='CityWatch-Login-New.html'; return false; }
+			if(role !== 'admin'){ window.location.href='CityWatch-User-Home.html'; return false; }
+			return true;
+		}
+		function logout(){ localStorage.removeItem('cw_token'); localStorage.removeItem('cw_user'); localStorage.removeItem('cw_user_role'); window.location.href='CityWatch-Login-New.html'; }
+		document.addEventListener('DOMContentLoaded', ()=>{
+			if(!ensureAdmin()) return;
+			try{ const user = JSON.parse(localStorage.getItem('cw_user')||'{}'); const name = user.name||'Admin'; document.getElementById('user-name').textContent = name; document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase(); }catch(_){}
+		});
+	</script>
+
+
+
+	<script>
+		// Users list client logic
+		const USERS_API = (window.API_BASE||'http://localhost:3000') + '/api/admin/users';
+		let usersStore = [];
+		let usersPage = 1; const usersPageSize = 10;
+
+		// Admins list client logic (alternate table)
+		const ADMINS_API = (window.API_BASE||'http://localhost:3000') + '/api/admin/users?role=admin';
+		let adminsStore = [];
+		let adminsPage = 1; const adminsPageSize = 8;
+
+		function fmtDateShort(s){ if(!s) return ''; const d=new Date(s); return d.toLocaleDateString(); }
+
+		async function fetchUsers(){
+			try{
+				const token = localStorage.getItem('cw_token');
+				let url = USERS_API;
+				// try admin endpoint first
+				const res = await fetch(url, { headers: { 'Authorization': 'Bearer '+token } });
+				if(!res.ok){ // fallback to public users list
+					const fres = await fetch((window.API_BASE||'http://localhost:3000') + '/api/users');
+					if(!fres.ok) return [];
+					const fdata = await fres.json(); return fdata.users || fdata || [];
+				}
+				const data = await res.json(); return data.users || data || [];
+			}catch(e){ console.error('fetch users', e); return []; }
+		}
+
+		function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+		function applyUserFilters(list){
+				const q = (document.getElementById('user-search').value||'').trim().toLowerCase();
+				return list.filter(u=>{
+					if(q){ const name = (u.name||'').toLowerCase(); const email = (u.email||'').toLowerCase(); if(!name.includes(q) && !email.includes(q)) return false; }
+					return true;
+				});
+		}
+
+		function renderUsersTable(){
+			const body = document.getElementById('users-table-body');
+			const filtered = applyUserFilters(usersStore);
+			const total = filtered.length;
+			const pages = Math.max(1, Math.ceil(total / usersPageSize));
+			if(usersPage>pages) usersPage = pages;
+			const start = (usersPage-1)*usersPageSize; const slice = filtered.slice(start, start+usersPageSize);
+			if(slice.length===0){ body.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1rem;color:#64748b">No users found</td></tr>'; }
+			else{
+				body.innerHTML = slice.map(u=>{
+					return `<tr style="background:#fff"><td style="padding:.9rem 1rem">${escapeHtml(u.name||'')}</td><td style="padding:.9rem 1rem">${escapeHtml(u.email||'')}</td><td style="padding:.9rem 1rem">${fmtDateShort(u.createdAt||u.registeredAt||u.registered)}</td><td style="padding:.9rem 1rem">
+						<button class="btn-view" data-id="${u._id||u.id}" style="margin-right:.35rem;background:#fff;border:1px solid #e6eef9;padding:.35rem .6rem;border-radius:12px;cursor:pointer">View</button>
+						<button class="btn-edit" data-id="${u._id||u.id}" style="margin-right:.35rem;background:#fff;border:1px solid #e6eef9;padding:.35rem .6rem;border-radius:12px;cursor:pointer">Edit</button>
+						<button class="btn-delete" data-id="${u._id||u.id}">Delete</button>
+					</td></tr>`;
+				}).join('');
+				// attach handlers
+				body.querySelectorAll('.btn-view').forEach(b=> b.addEventListener('click', onViewUser));
+				body.querySelectorAll('.btn-edit').forEach(b=> b.addEventListener('click', onEditUser));
+				body.querySelectorAll('.btn-delete').forEach(b=> b.addEventListener('click', onDeleteUser));
+			}
+			document.getElementById('users-table-info').textContent = `Showing ${Math.min(total, start+1)} to ${Math.min(total, start+slice.length)} of ${total} entries`;
+			renderUsersPagination(pages);
+			document.getElementById('total-users').textContent = usersStore.length;
+		}
+
+		function renderUsersPagination(pages){
+			const pdiv = document.getElementById('users-pagination'); pdiv.innerHTML = '';
+			for(let i=1;i<=pages;i++){
+				const btn = document.createElement('button'); btn.textContent = i; btn.style.padding='6px 10px'; btn.style.border='1px solid #e2e8f0'; btn.style.background = (i===usersPage)?'#0f52ba':'#fff'; btn.style.color = (i===usersPage)?'#fff':'#0f172a'; btn.style.borderRadius='6px'; btn.addEventListener('click', ()=>{ usersPage=i; renderUsersTable(); });
+				pdiv.appendChild(btn);
+			}
+		}
+
+		// Admins pagination renderer
+		function renderAdminsPagination(pages){
+			const pdiv = document.getElementById('users-pagination'); pdiv.innerHTML = '';
+			for(let i=1;i<=pages;i++){
+				const btn = document.createElement('button'); btn.textContent = i; btn.style.padding='6px 10px'; btn.style.border='1px solid #e2e8f0'; btn.style.background = (i===adminsPage)?'#0f52ba':'#fff'; btn.style.color = (i===adminsPage)?'#fff':'#0f172a'; btn.style.borderRadius='6px'; btn.addEventListener('click', ()=>{ adminsPage=i; renderAdminsTable(); });
+				pdiv.appendChild(btn);
+			}
+		}
+
+		async function loadAndRenderUsers(){
+			usersStore = await fetchUsers() || [];
+			// show only non-admin accounts
+			usersStore = usersStore.filter(u => ((u.role||'').toString().toLowerCase() !== 'admin'));
+			usersPage = 1; renderUsersTable();
+			// also fetch admins in background
+			loadAndRenderAdmins().catch(()=>{});
+		}
+
+		// Fetch and render admins
+		async function fetchAdmins(){
+			try{
+				const token = localStorage.getItem('cw_token');
+				const res = await fetch((window.API_BASE||'http://localhost:3000') + '/api/admin/users', { headers: { 'Authorization': 'Bearer '+token } });
+				if(!res.ok) return [];
+				const data = await res.json();
+				// filter admin role
+				return (data.users || data || []).filter(u => ((u.role||'').toString().toLowerCase() === 'admin'));
+			}catch(e){ console.error('fetch admins', e); return []; }
+		}
+
+		function renderAdminsTable(){
+			const body = document.getElementById('admins-table-body');
+			const filtered = adminsStore; // could apply filters later
+			const total = filtered.length;
+			const pages = Math.max(1, Math.ceil(total / adminsPageSize));
+			if(adminsPage>pages) adminsPage = pages;
+			const start = (adminsPage-1)*adminsPageSize; const slice = filtered.slice(start, start+adminsPageSize);
+			if(slice.length===0){ body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#64748b">No admins found</td></tr>'; }
+			else{
+				body.innerHTML = slice.map(u=>{
+					return `<tr style="background:#fff"><td style="padding:.9rem 1rem">${escapeHtml(u.name||'')}</td><td style="padding:.9rem 1rem">${escapeHtml(u.email||'')}</td><td style="padding:.9rem 1rem">${escapeHtml(u.role||'admin')}</td><td style="padding:.9rem 1rem">${fmtDateShort(u.createdAt||u.registeredAt||u.registered)}</td><td style="padding:.9rem 1rem"><button class="btn-edit" data-id="${u._id||u.id}" style="margin-right:.35rem;background:#fff;border:1px solid #e6eef9;padding:.35rem .6rem;border-radius:12px;cursor:pointer">Edit</button><button class="btn-delete" data-id="${u._id||u.id}" style="background:#fff;border:1px solid #e6eef9;padding:.35rem .6rem;border-radius:12px;cursor:pointer">Delete</button></td></tr>`;
+				}).join('');
+				body.querySelectorAll('.btn-edit').forEach(b=> b.addEventListener('click', onEditUser));
+				body.querySelectorAll('.btn-delete').forEach(b=> b.addEventListener('click', onDeleteUser));
+			}
+			document.getElementById('users-table-info').textContent = `Showing ${Math.min(total, start+1)} to ${Math.min(total, start+slice.length)} of ${total} entries`;
+			renderAdminsPagination(pages);
+		}
+
+		async function loadAndRenderAdmins(){
+			adminsStore = await fetchAdmins() || [];
+			adminsPage = 1; renderAdminsTable();
+		}
+
+		// status update removed
+
+		async function deleteUser(id){
+			if(!confirm('Delete this user?')) return;
+			try{
+				const token = localStorage.getItem('cw_token');
+				const res = await fetch((window.API_BASE||'http://localhost:3000')+`/api/admin/users/${encodeURIComponent(id)}`, { method:'DELETE', headers:{ 'Authorization': 'Bearer '+token } });
+				if(!res.ok){
+					const text = await res.text(); let data; try{ data = JSON.parse(text); }catch(e){};
+					const msg = (data && (data.message||data.error)) || text || 'Delete failed';
+					throw new Error(msg);
+				}
+				await loadAndRenderUsers();
+				showToast('User deleted');
+			}catch(e){ console.error(e); showToast('Delete failed'); }
+		}
+
+		// approve/reject handlers removed
+		function onDeleteUser(e){ const id = e.currentTarget.getAttribute('data-id'); deleteUser(id); }
+
+		// wire filters
+		document.getElementById('user-search').addEventListener('input', ()=>{ usersPage=1; renderUsersTable(); });
+
+		// Modal and CRUD wiring
+		const modal = document.getElementById('user-modal');
+		const modalTitle = document.getElementById('user-modal-title');
+	const btnAdd = document.getElementById('add-user-btn');
+	const btnAddAdmin = document.getElementById('add-admin-btn');
+	const btnClose = document.getElementById('user-modal-close');
+	const btnCancel = document.getElementById('user-cancel');
+	const btnSave = document.getElementById('user-save');
+	const userError = document.getElementById('user-error');
+		const form = document.getElementById('user-form');
+
+		function clearUserError(){ if(userError){ userError.style.display='none'; userError.textContent=''; } }
+
+		function setUserError(msg){ if(!userError) return; userError.style.display='block'; userError.textContent = msg; }
+
+		btnSave.addEventListener('click', async ()=>{
+			clearUserError();
+			const mode = btnSave.getAttribute('data-mode');
+			const roleFlag = btnSave.getAttribute('data-role'); // may be 'admin' when creating admin
+			const id = document.getElementById('u-id').value;
+			const payload = { name: document.getElementById('u-name').value.trim(), email: document.getElementById('u-email').value.trim() };
+			const pwd = document.getElementById('u-password').value;
+			try{
+				const token = localStorage.getItem('cw_token');
+				// client-side validation: require password for creations
+				if(mode==='create' || mode==='create-admin'){
+					if(!pwd || pwd.trim().length < 6){
+						setUserError('Please provide a password of at least 6 characters.');
+						return;
+					}
+					payload.password = pwd;
+					if(roleFlag) payload.role = roleFlag; // set admin role when requested
+					const res = await fetch((window.API_BASE||'http://localhost:3000') + '/api/admin/users', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+token }, body: JSON.stringify(payload) });
+					if(!res.ok){
+						const text = await res.text(); let data; try{ data = JSON.parse(text); }catch(e){}
+						const msg = (data && (data.message||data.error)) || text || 'Create failed';
+						throw new Error(msg);
+					}
+					showToast(roleFlag === 'admin' ? 'Admin created' : 'User created');
+					// refresh correct list
+					if(roleFlag === 'admin') await loadAndRenderAdmins(); else await loadAndRenderUsers();
+				}else{
+					// update: password optional but if provided must be >=6 chars
+					if(pwd){ if(pwd.trim().length < 6){ setUserError('Password must be at least 6 characters'); return; } payload.password = pwd; }
+					// preserve role if set on button
+					if(roleFlag) payload.role = roleFlag;
+					const res = await fetch((window.API_BASE||'http://localhost:3000') + `/api/admin/users/${encodeURIComponent(id)}`, { method:'PATCH', headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+token }, body: JSON.stringify(payload) });
+					if(!res.ok){
+						const text = await res.text(); let data; try{ data = JSON.parse(text); }catch(e){}
+						const msg = (data && (data.message||data.error)) || text || 'Update failed';
+						throw new Error(msg);
+					}
+					showToast('User updated');
+					// determine where to refresh
+					if((roleFlag && roleFlag==='admin') || adminsStore.find(u=>u._id===id || u.id===id)) await loadAndRenderAdmins(); else await loadAndRenderUsers();
+				}
+				closeUserModal();
+
+			}catch(err){ console.error(err); showToast(err.message||'Operation failed'); }
+			});
+
+			function closeUserModal(){ modal.style.display='none'; modal.setAttribute('aria-hidden','true'); }
+
+			async function onEditUser(e){ 
+				const id = e.currentTarget.getAttribute('data-id');
+				let u = usersStore.find(x=> (x._id==id||x.id==id));
+				if(!u) u = adminsStore.find(x=> (x._id==id||x.id==id));
+				if(!u) return; openUserModal('edit', u); 
+			}
+			async function onViewUser(e){ 
+				const id = e.currentTarget.getAttribute('data-id');
+				let u = usersStore.find(x=> (x._id==id||x.id==id));
+				if(!u) u = adminsStore.find(x=> (x._id==id||x.id==id));
+				if(!u) return; openUserModal('view', u); 
+			}
+
+
+		// initial users load
+		setTimeout(loadAndRenderUsers, 200);
+
+		// toggle view between complainants and admins
+		document.getElementById('toggle-admins-btn').addEventListener('click', ()=>{
+			const showAdmins = document.getElementById('admins-table').style.display !== 'none';
+			if(showAdmins){
+				document.getElementById('admins-table').style.display = 'none';
+				document.getElementById('complainants-table').style.display = '';
+				document.getElementById('toggle-admins-btn').textContent = 'Show Admins';
+				// render users pagination
+				renderUsersPagination(Math.max(1, Math.ceil(usersStore.length / usersPageSize)));
+			} else {
+				document.getElementById('admins-table').style.display = '';
+				document.getElementById('complainants-table').style.display = 'none';
+				document.getElementById('toggle-admins-btn').textContent = 'Show Complainants';
+				// ensure admins loaded
+				loadAndRenderAdmins();
+			}
+		});
+
+		// open modal helper
+		function openUserModal(mode, user){
+			// mode: 'create', 'create-admin', 'edit', 'view'
+			modal.style.display='flex'; modal.setAttribute('aria-hidden','false');
+			btnSave.setAttribute('data-mode', mode || 'create');
+			// reset error
+			clearUserError();
+			// default fields
+			document.getElementById('u-id').value = '';
+			document.getElementById('u-name').value = '';
+			document.getElementById('u-email').value = '';
+			document.getElementById('u-password').value = '';
+			btnSave.removeAttribute('data-role');
+			if(mode === 'create-admin'){
+				modalTitle.textContent = 'Create Admin';
+				btnSave.setAttribute('data-role','admin');
+				btnSave.setAttribute('data-mode','create-admin');
+				document.getElementById('u-password').placeholder = 'Password (required)';
+			} else if(mode === 'create'){
+				modalTitle.textContent = 'Add Complainant';
+				btnSave.setAttribute('data-mode','create');
+				document.getElementById('u-password').placeholder = 'New Password (required)';
+			} else if(mode === 'edit'){
+				modalTitle.textContent = 'Edit User';
+				btnSave.setAttribute('data-mode','edit');
+				if(user){ document.getElementById('u-id').value = user._id || user.id || ''; document.getElementById('u-name').value = user.name || ''; document.getElementById('u-email').value = user.email || ''; }
+				document.getElementById('u-password').placeholder = 'New Password (leave blank to keep current)';
+			} else if(mode === 'view'){
+				modalTitle.textContent = 'View User';
+				btnSave.setAttribute('data-mode','view');
+				if(user){ document.getElementById('u-id').value = user._id || user.id || ''; document.getElementById('u-name').value = user.name || ''; document.getElementById('u-email').value = user.email || ''; }
+				document.getElementById('u-password').placeholder = 'Password hidden';
+			}
+			// disable save for view
+			if(mode === 'view') btnSave.style.display = 'none'; else btnSave.style.display = '';
+		}
+
+		// wire add buttons
+		btnAdd && btnAdd.addEventListener('click', ()=> openUserModal('create'));
+		btnAddAdmin && btnAddAdmin.addEventListener('click', ()=> openUserModal('create-admin'));
+		btnClose && btnClose.addEventListener('click', ()=> closeUserModal());
+		btnCancel && btnCancel.addEventListener('click', ()=> closeUserModal());
+	</script>
+</body>
+</html>

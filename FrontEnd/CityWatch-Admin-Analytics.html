@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>City Watch - Admin Analytics</title>
+	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+	<link href="transition.css" rel="stylesheet">
+	<link href="notification-bell.css" rel="stylesheet">
+	<script src="transitions.js" defer></script>
+	<script src="notification-bell.js" defer></script>
+	<style>
+		*{box-sizing:border-box;margin:0;padding:0}
+		body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;background:#f4f6fa;color:#1e293b}
+		/* Header copied from user-side for consistent logo, shapes and spacing */
+		.header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+		.header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+		.logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+		.logo i { font-size: 2rem; }
+		.admin-nav, .nav { display:flex; gap:2rem; align-items:center; }
+		.admin-nav a, .nav a { color:#374151; text-decoration:none; font-weight:500; transition: color 0.2s; padding:6px 8px; border-radius:6px; }
+		.admin-nav a:hover, .admin-nav a.active, .nav a:hover, .nav a.active { color:#2563eb; }
+		.user-menu { display:flex; align-items:center; gap:1rem; }
+		.user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem }
+		.logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer; font-weight:600; transition: background-color 0.2s; }
+		.logout-btn:hover { background:#b91c1c; }
+		.container{max-width:1200px;margin:1.25rem auto;padding:0 20px}
+		h1{color:#1e40af;margin:10px 0 18px}
+
+		/* analytics cards */
+		.card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(2,6,23,0.04);display:flex;flex-direction:column;justify-content:space-between}
+		.card-title{color:#475569;font-weight:700;font-size:0.95rem}
+		.card-value{color:#0f172a;font-size:1.45rem;font-weight:800;margin-top:8px}
+	</style>
+</head>
+<body>
+	<header class="header">
+		<div class="header-content">
+			<a href="CityWatch-Admin-Dashboard.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+			<nav class="admin-nav">
+				<a href="CityWatch-Admin-Dashboard.html">Dashboard</a>
+				<a href="CityWatch-Admin-Reports.html">Reports</a>
+				<a href="CityWatch-Admin-User.html">Users</a>
+				<a href="CityWatch-Admin-Analytics.html" class="active">Analytics</a>
+				<a href="CityWatch-Admin-Notification.html">Notifications</a>
+			</nav>
+			<div class="user-menu">
+				<div id="notification-bell"></div>
+				<div style="display:flex;align-items:center;gap:8px">
+					<div class="user-avatar" id="user-avatar">A</div>
+					<span id="user-name">Admin</span>
+				</div>
+				<button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="container">
+		<h1>Analytics</h1>
+		<div style="color:#475569;margin-bottom:18px">Overview of reports and trends</div>
+
+		<!-- Overview cards -->
+		<section id="overview-cards" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px">
+			<div class="card"><div class="card-title">Total Reports<br><small style="color:#64748b">All time</small></div><div class="card-value" id="card-total">0</div></div>
+			<div class="card"><div class="card-title">Pending<br><small style="color:#64748b">All time</small></div><div class="card-value" id="card-pending">0</div></div>
+			<div class="card"><div class="card-title">In-progress<br><small style="color:#64748b">All time</small></div><div class="card-value" id="card-progress">0</div></div>
+			<div class="card"><div class="card-title">Resolved<br><small style="color:#64748b">All time</small></div><div class="card-value" id="card-resolved">0</div></div>
+		</section>
+
+		<!-- Charts -->
+		<section style="display:grid;grid-template-columns:1fr 360px;gap:24px;align-items:start">
+			<div style="background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+				<h2 style="color:#1e40af;margin:0 0 12px;font-size:1.05rem">Reports Trend</h2>
+				<canvas id="trendChart" height="220"></canvas>
+			</div>
+			<div style="background:#fff;padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.06)">
+				<h2 style="color:#1e40af;margin:0 0 12px;font-size:1.05rem">Reports by Category</h2>
+				<canvas id="categoryChart" height="220"></canvas>
+				<div id="category-legend" style="margin-top:12px;font-size:0.95rem"></div>
+			</div>
+		</section>
+	</main>
+
+	<script>
+		function ensureAdmin(){
+			const token = localStorage.getItem('cw_token');
+			const role = localStorage.getItem('cw_user_role');
+			if(!token){ window.location.href='CityWatch-Login-New.html'; return false; }
+			if(role !== 'admin'){ window.location.href='CityWatch-User-Home.html'; return false; }
+			return true;
+		}
+		function logout(){ localStorage.removeItem('cw_token'); localStorage.removeItem('cw_user'); localStorage.removeItem('cw_user_role'); window.location.href='CityWatch-Login-New.html'; }
+		document.addEventListener('DOMContentLoaded', ()=>{
+			if(!ensureAdmin()) return;
+			try{ const user = JSON.parse(localStorage.getItem('cw_user')||'{}'); const name = user.name||'Admin'; document.getElementById('user-name').textContent = name; document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase(); }catch(_){}
+		});
+	</script>
+
+
+
+		<!-- Charts and analytics script -->
+		<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+		<script>
+		// Demo fallback data
+		const demoAnalytics = {
+			monthly: [5,3,1,4,7,3,5,4,2,5,2,1],
+			categories: { 'Road and Traffic': 18, 'Waste Management': 17, 'Flooding and Drainage': 17, 'Public Safety': 16, 'Utilities': 16, 'Others': 16 },
+			totals: { total: 86, pending: 12, inProgress: 18, resolved: 56 }
+		};
+
+		function updateCards(totals){
+			document.getElementById('card-total').textContent = totals.total ?? 0;
+			document.getElementById('card-pending').textContent = totals.pending ?? 0;
+			document.getElementById('card-progress').textContent = totals.inProgress ?? 0;
+			document.getElementById('card-resolved').textContent = totals.resolved ?? 0;
+		}
+
+		function buildCategoryLegend(container, labels, colors, values){
+			container.innerHTML = '';
+			for(let i=0;i<labels.length;i++){
+				const row = document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px'; row.style.marginBottom='6px';
+				const sw = document.createElement('div'); sw.style.width='14px'; sw.style.height='14px'; sw.style.background=colors[i]; sw.style.borderRadius='3px';
+				const lbl = document.createElement('div'); lbl.textContent = labels[i] + ' — ' + values[i] + '%'; lbl.style.color='#334155';
+				row.appendChild(sw); row.appendChild(lbl); container.appendChild(row);
+			}
+		}
+
+		let trendChart, categoryChart;
+
+		function renderCharts(data){
+			const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+			const trendCtx = document.getElementById('trendChart').getContext('2d');
+			if(trendChart) trendChart.destroy();
+			trendChart = new Chart(trendCtx, {
+				type:'line',
+				data:{ labels: months, datasets:[{ label:'Reports', data: data.monthly, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.08)', tension:0.35, pointRadius:4, pointBackgroundColor:'#fff', pointBorderColor:'#3b82f6' }] },
+				options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true, ticks:{ stepSize:1 } } }
+				}
+			});
+
+			const catCtx = document.getElementById('categoryChart').getContext('2d');
+			const labels = Object.keys(data.categories);
+			const values = labels.map(l=>data.categories[l]);
+			const colors = ['#0b5cf6','#165d9b','#2b6cb0','#60a5fa','#93c5fd','#c7e0ff'];
+			if(categoryChart) categoryChart.destroy();
+			categoryChart = new Chart(catCtx, { type:'doughnut', data:{ labels, datasets:[{ data: values, backgroundColor: colors }] }, options:{ plugins:{ legend:{ display:false } }, cutout:'70%' } });
+			buildCategoryLegend(document.getElementById('category-legend'), labels, colors, values);
+		}
+
+		async function fetchAnalytics(){
+			const token = localStorage.getItem('cw_token');
+			const base = window.API_BASE || 'http://localhost:3000';
+			try{
+				// when no token, request demo data from server to avoid auth failure in dev
+				const url = base + '/api/admin/analytics' + (token? '': '?demo=true');
+				const res = await fetch(url, { headers: token? { Authorization: 'Bearer '+token } : {} });
+				if(!res.ok) throw new Error('no analytics');
+				const json = await res.json();
+				// expect { monthly:[], categories:{}, totals:{} }
+				return json;
+			}catch(e){ console.warn('analytics fetch failed, using demo', e); return demoAnalytics; }
+		}
+
+		// init
+		(async function(){
+			const data = await fetchAnalytics();
+			updateCards(data.totals || demoAnalytics.totals);
+			renderCharts({ monthly: data.monthly || demoAnalytics.monthly, categories: data.categories || demoAnalytics.categories });
+		})();
+		</script>
+</body>
+</html>

@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Track My Reports</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="transition.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background-color: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 0;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2563eb;
+      font-weight: bold;
+      font-size: 1.5rem;
+      text-decoration: none;
+    }
+
+    .logo i {
+      font-size: 2rem;
+    }
+
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav a {
+      color: #374151;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav a:hover,
+    .nav a.active {
+      color: #2563eb;
+    }
+
+    .user-menu { display: flex; align-items: center; gap: 1rem; }
+    .user-avatar { width: 32px; height: 32px; background-color: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.875rem; }
+    .logout-btn { background-color: #dc2626; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 500; transition: background-color 0.2s; }
+    .logout-btn:hover { background-color: #b91c1c; }
+
+    /* Notification Styles */
+    .notification-container { position: relative; }
+    
+    .notification-bell {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-bell:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .notification-bell i {
+      font-size: 1.5rem;
+      color: #64748b;
+    }
+    
+    .notification-count {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background-color: #dc2626;
+      color: white;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      display: none;
+    }
+    
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      z-index: 1000;
+    }
+    
+    .notification-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .notification-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    
+    .notification-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    
+    .notification-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .notification-item.unread {
+      background-color: #eff6ff;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-message {
+      font-size: 0.875rem;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+    
+    .notification-time {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 1100px;
+      margin: 3rem auto;
+      padding: 0 2rem;
+    }
+
+    .page-title { text-align: left; font-size: 1.1rem; font-weight: 700; color: #1e40af; margin-bottom: 1.5rem; }
+
+    .page-subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 3rem;
+    }
+
+    /* List */
+    .reports-list { display: grid; gap: 1rem; }
+
+    /* Report Display */
+    .report-card { background:#fff; border-radius:12px; box-shadow:0 1px 3px rgba(0,0,0,.1); padding: 1rem 1.25rem; }
+
+    .report-header { display:flex; justify-content: space-between; align-items:flex-start; margin-bottom:.75rem; }
+
+    .report-title { font-size: .95rem; font-weight: 600; color: #1e293b; margin-bottom: .25rem; }
+
+    .report-ref { font-size:.8rem; color:#64748b; font-family: monospace; }
+
+    .status-badge { padding:.25rem .6rem; border-radius: 20px; font-size: .75rem; font-weight:600; text-transform: uppercase; }
+
+    .status-new {
+      background-color: #dbeafe;
+      color: #1e40af;
+    }
+
+    .status-in-progress {
+      background-color: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-resolved {
+      background-color: #d1fae5;
+      color: #065f46;
+    }
+
+    .report-details {
+      display: grid;
+      gap: 1.5rem;
+    }
+
+    .detail-section {
+      background-color: #f8fafc;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border-left: 4px solid #2563eb;
+    }
+
+    .detail-title {
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.5rem;
+    }
+
+    .detail-content {
+      color: #64748b;
+    }
+
+    .report-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #64748b;
+    }
+
+    .meta-item i {
+      color: #2563eb;
+    }
+
+    .admin-notes {
+      background-color: #eff6ff;
+      border-left-color: #3b82f6;
+    }
+
+    .admin-notes .detail-title {
+      color: #1e40af;
+    }
+
+    /* Status Messages */
+    .status-message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-error {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .status-info {
+      background-color: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+     /* Footer */
+    .footer {
+      background-color: #1e40af;
+      color: white;
+      padding: 3rem 0 2rem;
+      margin-top: 15rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+
+      display: flex;
+      justify-content: space-between;  /* pushes logo left, contact right */
+      align-items: flex-start;          /* aligns text nicely at the top */
+      flex-wrap: wrap;                  /* keeps it neat on smaller screens */
+      gap: 2rem;
+    }
+
+    .footer-section p {
+      color: #FFF;
+      margin-bottom: 1rem;
+      margin-top: 70px;
+      font-size: 20px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: normal;
+    }
+
+    .footer-section h3 {
+      color: #FFF;
+      margin-bottom: 150px;
+      font-size: 45px;
+      opacity: 0.9;
+    }
+
+    .footer-section a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.5rem;
+      opacity: 0.9;
+    }
+
+    .footer-section a:hover {
+      opacity: 1;
+    }
+
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .footer-logo i {
+        font-size: 1.5rem;
+      }
+
+      .footer-logo span {
+        font-size: 25px;
+        font-weight: 600;
+      }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .copyright {
+  text-align: center;
+  position: relative;
+  top: 20px; 
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .nav {
+        gap: 1rem;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
+
+      .report-header {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .report-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="CityWatch-User-Home.html" class="logo">
+        <i class='bx bxs-building'></i>
+        City Watch
+      </a>
+      <nav class="nav">
+        <a href="CityWatch-User-Home.html">Home</a>
+        <a href="CityWatch-Report-New.html">Report Issue</a>
+        <a href="#" class="active">Track Reports</a>
+        <a href="CityWatch-About.html">About</a>
+      </nav>
+      <div class="user-menu">
+        <div class="notification-container">
+          <div class="notification-bell" id="notification-bell">
+            <i class='bx bx-bell'></i>
+            <div class="notification-count" id="notification-count"></div>
+          </div>
+          <div class="notification-dropdown" id="notification-dropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+            </div>
+            <div class="notification-list" id="notification-list">
+              <!-- Notifications will be inserted here -->
+            </div>
+          </div>
+        </div>
+        <div class="user-avatar" id="user-avatar">U</div>
+        <span id="user-name">User</span>
+        <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <h1 class="page-title">Track My Reports</h1>
+    <div id="status-message" class="status-message" style="display: none;"></div>
+    <div id="reports-list" class="reports-list"></div>
+  </main>
+
+<!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="footer-logo">
+          <i class='bx bxs-building'></i>
+          <span>City Watch</span>
+        </div>
+        <h3>Every report helps <br> protect the community</h3>
+      </div>
+      
+        <!-- Quick Links removed per request -->
+      
+      <div class="footer-section">
+        <p>Contact Us</p>
+        <div class="contact-item">
+          <i class='bx bx-envelope'></i>
+          <span>citywatch@gmail.com</span>
+        </div>
+        <div class="contact-item">
+          <i class='bx bx-phone'></i>
+          <span>(123) 456-789</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      © 2025 City Watch | Municipal Issue Reporting and Tracking Platform
+    </div>
+  </footer>
+
+  <script src="user-notifications.js"></script>
+  <script src="transitions.js"></script>
+  <script>
+    // Compute API base (support file:// open)
+    const API_BASE = (location.origin === 'null' || location.protocol === 'file:')
+      ? 'http://localhost:3000'
+      : '';
+
+    const statusMessage = document.getElementById('status-message');
+    const reportsList = document.getElementById('reports-list');
+
+    function showStatus(text, type) {
+      statusMessage.textContent = text;
+      statusMessage.className = `status-message status-${type}`;
+      statusMessage.style.display = 'block';
+    }
+
+    function hideStatus() {
+      statusMessage.style.display = 'none';
+    }
+
+    function setLoading(loading) {
+      // optional placeholder, not needed for list view
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadMyReports() {
+      try {
+        const token = localStorage.getItem('cw_token');
+        if (!token) { window.location.href = 'CityWatch-Login-New.html'; return; }
+        const response = await fetch(`${API_BASE}/api/reports/my-reports`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (!response.ok) { showStatus(data.message || 'Failed to load reports.', 'error'); return; }
+        const reports = data.reports || [];
+        if (reports.length === 0) {
+          reportsList.innerHTML = '<div class="status-message status-info">No reports found.</div>';
+          return;
+        }
+        reportsList.innerHTML = reports.map(r => `
+          <div class="report-card">
+            <div class="report-header">
+              <div>
+                <div class="report-title">${escapeHtml(r.title)}</div>
+                <div class="report-ref">Ticket Number: ${r.referenceNumber}</div>
+              </div>
+              <div class="status-badge status-${r.status}">${r.status.replace('_',' ')}</div>
+            </div>
+            <div class="detail-content" style="color:#475569; font-size:.9rem;">
+              <div><strong>Location:</strong> ${escapeHtml(r.address || '—')}</div>
+              <div><strong>Date Submitted:</strong> ${formatDate(r.createdAt)}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+        showStatus('Network error. Please try again.', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadMyReports);
+
+    // Populate user name/avatar and handle logout consistently
+    (function initUserHeader(){
+      try {
+        const user = JSON.parse(localStorage.getItem('cw_user') || '{}');
+        const nameEl = document.getElementById('user-name');
+        const avatarEl = document.getElementById('user-avatar');
+        if (nameEl && user.name) nameEl.textContent = user.name;
+        if (avatarEl) avatarEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
+      } catch (_) {}
+    })();
+
+    function logout(){
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      localStorage.removeItem('cw_user_role');
+      window.location.href = 'CityWatch-Login-New.html';
+    }
+
+    // Add smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Initialize notifications
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure the notifications system is initialized after page load
+      if (typeof initNotifications === 'function') {
+        initNotifications();
+      }
+    });
+  </script>
+</body>
+</html>

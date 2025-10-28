@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Admin Notifications</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="transition.css" rel="stylesheet">
+  <script src="transitions.js" defer></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f4f6fa; color:#1e293b; }
+
+    .header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+    .header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+    .logo i { font-size: 2rem; }
+    .admin-nav { display:flex; gap:2rem; align-items:center; }
+    .admin-nav a { color:#374151; text-decoration:none; font-weight:500; transition: color 0.2s; padding:6px 8px; border-radius:6px; }
+    .admin-nav a:hover, .admin-nav a.active { color:#2563eb; }
+    .user-menu { display:flex; align-items:center; gap:1rem; }
+    .user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem }
+    .logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer; font-weight:600; transition: background-color 0.2s; }
+    .logout-btn:hover { background:#b91c1c; }
+
+    .container { max-width:1200px; margin: 1.25rem auto 2rem; padding: 0 2rem; }
+    .page-title { font-weight:800; color:#1e40af; margin-bottom:1rem; }
+    
+    .notification-list { margin-top: 1rem; }
+    .notification-item { background: #fff; border-radius: 10px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #e5e7eb; display: flex; align-items: flex-start; gap: 1rem; transition: all 0.2s; }
+    .notification-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .notification-item.unread { background: #f0f7ff; border-color: #93c5fd; }
+    .notification-avatar { width: 40px; height: 40px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+    .notification-content { flex: 1; }
+    .notification-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.25rem; }
+    .notification-message { color: #1e293b; font-weight: 500; }
+    .notification-time { color: #64748b; font-size: 0.875rem; white-space: nowrap; margin-left: 1rem; }
+    .notification-actions { margin-top: 0.5rem; }
+    .notification-link { color: #2563eb; text-decoration: none; font-weight: 500; font-size: 0.875rem; }
+    .notification-link:hover { text-decoration: underline; }
+    
+    .toolbar { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 1rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .toolbar-filters {
+      display: flex;
+      gap: 1rem;
+      flex: 1;
+      min-width: 200px;
+      flex-wrap: wrap;
+    }
+    .toolbar-actions { display: flex; gap: 0.5rem; }
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 200px;
+    }
+    .search-box i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 0.5rem 0.5rem 0.5rem 2rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      outline: none;
+    }
+    .search-box input:focus {
+      border-color: #2563eb;
+    }
+    .select {
+      padding: 0.5rem;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      outline: none;
+      min-width: 120px;
+      cursor: pointer;
+    }
+    .select:focus {
+      border-color: #2563eb;
+    }
+    .btn { 
+      padding: 0.5rem 1rem; 
+      border-radius: 6px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+    }
+    .btn-primary { 
+      background: #2563eb; 
+      color: #fff; 
+      border: none; 
+    }
+    .btn-primary:hover { 
+      background: #1d4ed8; 
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(37,99,235,0.15);
+    }
+    .btn-secondary { 
+      background: #fff; 
+      color: #1e293b; 
+      border: 1px solid #e5e7eb; 
+    }
+    .btn-secondary:hover { 
+      background: #f8fafc; 
+      transform: translateY(-1px);
+    }
+
+    .notification-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      text-align: center;
+    }
+    .stat-label {
+      color: #64748b;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 0.25rem;
+      margin-top: 1.5rem;
+    }
+    .pagination button {
+      padding: 0.5rem 0.75rem;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      color: #1e293b;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pagination button:hover {
+      background: #f8fafc;
+      transform: translateY(-1px);
+    }
+    .pagination button.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+    }
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .notifications-list {
+        margin-top: 1rem;
+    }
+    .notification-item {
+        background: #fff;
+        padding: 1.25rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+        border: 1px solid #e5e7eb;
+    }
+    .notification-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .notification-item.unread {
+        border-left: 4px solid #2563eb;
+    }
+    .notification-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.75rem;
+    }
+    .notification-header h3 {
+        margin: 0;
+        color: #1e293b;
+        font-size: 1.125rem;
+    }
+    .notification-time {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+    .notification-item p {
+        margin: 0 0 1rem 0;
+        color: #475569;
+        line-height: 1.5;
+    }
+    .notification-footer {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    .notification-type {
+        background: #f1f5f9;
+        color: #475569;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+    }
+    .notification-priority {
+        background: #fee2e2;
+        color: #dc2626;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .showing-info {
+        color: #64748b;
+        font-size: 0.875rem;
+        margin: 1rem 0;
+    }
+
+    @media (max-width: 640px) {
+      .toolbar { flex-direction: column; gap: 0.5rem; align-items: stretch; }
+      .toolbar-actions { justify-content: stretch; }
+      .btn { width: 100%; text-align: center; }
+    }
+  </style>
+    <script defer src="admin-notifications.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="CityWatch-Admin-Dashboard.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+      <nav class="admin-nav">
+        <a href="CityWatch-Admin-Dashboard.html">Dashboard</a>
+        <a href="CityWatch-Admin-Reports.html">Reports</a>
+        <a href="CityWatch-Admin-User.html">Users</a>
+        <a href="CityWatch-Admin-Analytics.html">Analytics</a>
+        <a href="CityWatch-Admin-Notification.html" class="active">Notifications</a>
+      </nav>
+      <div class="user-menu">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <span id="user-name">Admin</span>
+        <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">Notifications</h2>
+    
+    <div class="toolbar">
+      <div class="toolbar-filters">
+        <select class="select" id="filter-status">
+          <option value="all">All Notifications</option>
+          <option value="unread">Unread</option>
+          <option value="read">Read</option>
+        </select>
+        <div class="search-box">
+          <i class='bx bx-search'></i>
+          <input type="text" id="search-input" placeholder="Search notifications...">
+        </div>
+      </div>
+      <div class="toolbar-actions">
+        <button class="btn btn-primary" onclick="markAllAsRead()">Mark All as Read</button>
+      </div>
+    </div>
+
+    <div class="notification-stats">
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-value" id="total-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Unread</div>
+        <div class="stat-value" id="unread-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="today-count">0</div>
+      </div>
+    </div>
+
+    <div class="notification-list" id="notification-list">
+      <!-- Notifications will be loaded here -->
+    </div>
+
+    <div class="pagination" id="pagination">
+      <!-- Pagination will be added here -->
+    </div>
+  </main>
+
+  <script>
+    function ensureAdmin() {
+      const token = localStorage.getItem('cw_token');
+      const role = localStorage.getItem('cw_user_role');
+      if (!token) { window.location.href = 'CityWatch-Login-New.html'; return false; }
+      if (role !== 'admin') { window.location.href = 'CityWatch-User-Home.html'; return false; }
+      return true;
+    }
+
+    function logout() {
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      localStorage.removeItem('cw_user_role');
+      window.location.href = 'CityWatch-Login-New.html';
+    }
+
+    const API_BASE = (location.origin === 'null' || location.protocol === 'file:') ? 'http://localhost:3000' : '';
+
+    function timeAgo(iso) {
+      if (!iso) return '';
+      const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (diff < 10) return 'just now';
+      if (diff < 60) return `${diff}s`;
+      if (diff < 3600) return `${Math.floor(diff/60)}m`;
+      if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+      return new Date(iso).toLocaleString();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    let allNotifications = [];
+    let filteredNotifications = [];
+
+    async function loadNotifications() {
+      try {
+        const token = localStorage.getItem('cw_token');
+        const res = await fetch(`${API_BASE}/api/admin/notifications`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) {
+          throw new Error('Failed to load notifications');
+        }
+
+        const data = await res.json();
+        allNotifications = data.notifications || data || [];
+        filterNotifications();
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+      }
+    }
+
+    function filterNotifications() {
+      const searchTerm = document.getElementById('search-input').value.toLowerCase();
+      const statusFilter = document.getElementById('filter-status').value;
+      
+      filteredNotifications = allNotifications.filter(notification => {
+        const matchesSearch = notification.message.toLowerCase().includes(searchTerm);
+        const matchesStatus = statusFilter === 'all' || 
+                            (statusFilter === 'unread' && !notification.read) ||
+                            (statusFilter === 'read' && notification.read);
+        
+        return matchesSearch && matchesStatus;
+      });
+
+      // Update stats
+      document.getElementById('total-count').textContent = allNotifications.length;
+      document.getElementById('unread-count').textContent = allNotifications.filter(n => !n.read).length;
+      document.getElementById('today-count').textContent = allNotifications.filter(n => {
+        const today = new Date();
+        const notificationDate = new Date(n.createdAt);
+        return notificationDate.toDateString() === today.toDateString();
+      }).length;
+
+      renderNotifications(filteredNotifications);
+    }
+
+    function renderNotifications(notifications) {
+      const container = document.getElementById('notification-list');
+      if (!notifications || notifications.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #64748b;">No notifications found</div>';
+        return;
+      }
+
+      container.innerHTML = notifications.map(notification => {
+        const unreadClass = notification.read ? '' : 'unread';
+        const avatar = (notification.data && notification.data.reporter && notification.data.reporter.name) 
+          ? escapeHtml(notification.data.reporter.name.charAt(0).toUpperCase()) 
+          : 'A';
+        const time = timeAgo(notification.createdAt);
+        const reportId = notification.reportId || (notification.data && (notification.data.reportId || notification.data.id || notification.data._id)) || '';
+        
+        return `
+          <div class="notification-item ${unreadClass}" data-id="${notification.id || notification._id}">
+            <div class="notification-avatar">${avatar}</div>
+            <div class="notification-content">
+              <div class="notification-meta">
+                <div class="notification-message">${escapeHtml(notification.message)}</div>
+                <div class="notification-time">${time}</div>
+              </div>
+              ${reportId ? `
+                <div class="notification-actions">
+                  <a href="CityWatch-Admin-Reports.html?openReport=${encodeURIComponent(reportId)}" class="notification-link">
+                    View Report
+                  </a>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add click handlers to mark notifications as read
+      container.querySelectorAll('.notification-item').forEach(item => {
+        if (!item.classList.contains('unread')) return;
+        
+        item.addEventListener('click', async () => {
+          const id = item.getAttribute('data-id');
+          if (!id) return;
+          
+          try {
+            const token = localStorage.getItem('cw_token');
+            const res = await fetch(`${API_BASE}/api/admin/notifications/${id}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ read: true })
+            });
+            
+            if (res.ok) {
+              item.classList.remove('unread');
+            }
+          } catch (error) {
+            console.error('Error marking notification as read:', error);
+          }
+        });
+      });
+    }
+
+    async function markAllAsRead() {
+      try {
+        const token = localStorage.getItem('cw_token');
+        const unreadIds = allNotifications
+          .filter(n => !n.read)
+          .map(n => n.id || n._id);
+
+        if (unreadIds.length === 0) {
+          showToast('No unread notifications to mark');
+          return;
+        }
+
+        const res = await fetch(`${API_BASE}/api/admin/notifications/mark-all-read`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error('Failed to mark all as read');
+        }
+
+        // Update local state
+        allNotifications = allNotifications.map(notification => ({
+          ...notification,
+          read: true
+        }));
+
+        // Update UI
+        filterNotifications();
+        showToast('All notifications marked as read');
+      } catch (error) {
+        console.error('Error marking all as read:', error);
+      }
+    }
+
+    function refreshNotifications() {
+      loadNotifications();
+    }
+
+    function showToast(message) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.position = 'fixed';
+        toast.style.bottom = '20px';
+        toast.style.right = '20px';
+        toast.style.background = '#1e293b';
+        toast.style.color = '#fff';
+        toast.style.padding = '12px 24px';
+        toast.style.borderRadius = '6px';
+        toast.style.zIndex = '1000';
+        toast.style.transition = 'opacity 0.3s';
+        document.body.appendChild(toast);
+      }
+
+      toast.textContent = message;
+      toast.style.opacity = '1';
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 3000);
+    }
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!ensureAdmin()) return;
+      
+      try {
+        const user = JSON.parse(localStorage.getItem('cw_user') || '{}');
+        const name = user.name || 'Admin';
+        document.getElementById('user-name').textContent = name;
+        document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+      } catch(_) {}
+
+      // Add event listeners for search and filter
+      document.getElementById('search-input').addEventListener('input', debounce(filterNotifications, 300));
+      document.getElementById('filter-status').addEventListener('change', filterNotifications);
+
+      loadNotifications();
+
+      // Set up auto-refresh every 30 seconds
+      setInterval(loadNotifications, 30000);
+    });
+
+    // Debounce function to limit how often filterNotifications is called
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    };
+  </script>
+</body>
+</html>

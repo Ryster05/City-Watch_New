@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Submit Report</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="transition.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      line-height: 1.6;
+    }
+
+    /* Header */
+    .header {
+      background-color: white;
+      border-bottom: 1px solid #e2e8f0;
+      padding: 1rem 0;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2563eb;
+      font-weight: bold;
+      font-size: 1.5rem;
+      text-decoration: none;
+    }
+
+    .logo i {
+      font-size: 2rem;
+    }
+
+    .nav {
+      display: flex;
+      gap: 2rem;
+    }
+
+    .nav a {
+      color: #374151;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav a:hover {
+      color: #2563eb;
+    }
+
+    .user-menu { display:flex; align-items:center; gap:1rem; }
+    .user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; }
+    .logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:.5rem 1rem; cursor:pointer; font-weight:500; }
+
+    /* Notification Styles */
+    .notification-container { position: relative; }
+    
+    .notification-bell {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-bell:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .notification-bell i {
+      font-size: 1.5rem;
+      color: #64748b;
+    }
+    
+    .notification-count {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background-color: #dc2626;
+      color: white;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      display: none;
+    }
+    
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      z-index: 1000;
+    }
+    
+    .notification-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .notification-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    
+    .notification-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    
+    .notification-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .notification-item.unread {
+      background-color: #eff6ff;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-message {
+      font-size: 0.875rem;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+    
+    .notification-time {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+    /* Main Content */
+    .main-content {
+      max-width: 800px;
+      margin: 90px auto;
+      padding: 0 2rem;
+      text-align: center;
+    }
+
+    .main-title {
+      color: #0455C0;
+      font-size: 25px;
+      font-style: normal;
+      font-weight: 700;
+      line-height: normal;
+      margin-bottom: 50px;
+    }
+
+    /* Form Card */
+    .form-card {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
+
+    .form-label {
+      display: block;
+      font-weight: bold;
+      color: #0455C0;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+
+  
+    .form-input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      background-color: #f9fafb;
+      font-size: 1rem;
+      transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      background-color: white;
+    }
+
+
+    select.form-input {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%232563eb' stroke-width='2' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      background-size: 1rem;
+      padding-right: 2.5rem; 
+      cursor: pointer;
+    }
+
+
+
+    .form-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      background-color: white;
+    }
+
+    .form-input::placeholder {
+      color: #9ca3af;
+    }
+
+
+      /*line-style for Full Address */
+    .line-textarea {
+      /* visual line */
+      border: none !important;
+      border-bottom: 1.5px solid #94a3b8 !important;
+      background: transparent !important;
+
+      /* text sizing & vertical alignment */
+      font-size: 15px;
+      height: 28px;            /* fixed visual height for single-line look */
+      line-height: 28px;       /* match height so typed text vertically centers on the line */
+      padding: 0 0 0 0;        /* remove extra internal spacing */
+      box-sizing: border-box;
+
+      /* layout */
+      width: 100%;
+      outline: none;
+      resize: none;
+      border-radius: 0;
+      overflow: hidden;        /* hide overflow so it truly looks single-line */
+      vertical-align: middle;
+      font-family: inherit;    /* ensure placeholder/typed text render same */
+    }
+
+    /* placeholder matches the same vertical position */
+    .line-textarea::placeholder {
+      color: #9ca3af;
+      opacity: 1;
+      line-height: 28px;       /* ensure placeholder uses same baseline */
+    }
+
+    /* focused state */
+    .line-textarea:focus {
+      border-color: #2563eb !important;
+      background: transparent !important;
+    }
+
+    /* Smaller note under Full Address */
+    .note {
+      font-size: 0.85rem;    /* smaller text */
+      color: #64748b;        /* subtle gray-blue tone */
+      margin-top: 4px;
+    }
+
+    .address-label {
+  display: block;
+  font-weight: 600;
+  color: #1e293b; /* keep text black like normal text */
+  margin-bottom: 0.4rem;
+  font-size: 1rem;
+}
+
+.address-label select {
+  display: block;
+  margin-top: 0.5rem; /* adjust spacing as needed */
+  width: 100%;
+}
+
+
+    .required {
+      color: #dc2626; /* red */
+      margin-left: 4px;
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .file-upload {
+      position: relative;
+      display: inline-block;
+    }
+
+    .file-upload-button {
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2563eb;
+      font-weight: 500;
+      transition: background-color 0.2s;
+    }
+
+    .file-upload-button:hover {
+      background-color: #e5e7eb;
+    }
+
+    .file-upload input[type="file"] {
+      position: absolute;
+      left: -9999px;
+      opacity: 0;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .submit-button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      width: 100%;
+    }
+
+    .submit-button:hover {
+      background-color: #1d4ed8;
+    }
+
+    .submit-button:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+
+    .cancel-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .cancel-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Status Messages */
+    .status-message {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .status-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-error {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .status-info {
+      background-color: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* Footer */
+    .footer {
+      background-color: #1e40af;
+      color: white;
+      padding: 3rem 0 2rem;
+      margin-top: 15rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+
+      display: flex;
+      justify-content: space-between;  /* pushes logo left, contact right */
+      align-items: flex-start;          /* aligns text nicely at the top */
+      flex-wrap: wrap;                  /* keeps it neat on smaller screens */
+      gap: 2rem;
+    }
+
+    .footer-section p {
+      color: #FFF;
+      margin-bottom: 1rem;
+      margin-top: 70px;
+      font-size: 20px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: normal;
+    }
+
+    .footer-section h3 {
+      color: #FFF;
+      margin-bottom: 150px;
+      font-size: 45px;
+      opacity: 0.9;
+    }
+
+    .footer-section a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.5rem;
+      opacity: 0.9;
+    }
+
+    .footer-section a:hover {
+      opacity: 1;
+    }
+
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .footer-logo i {
+        font-size: 1.5rem;
+      }
+
+      .footer-logo span {
+        font-size: 25px;
+        font-weight: 600;
+      }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .copyright {
+  text-align: center;
+  position: relative;
+  top: 20px; 
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header-content {
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .nav {
+        gap: 1rem;
+      }
+
+      .main-title {
+        font-size: 2rem;
+      }
+
+      .footer-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="CityWatch-User-Home.html" class="logo">
+        <i class='bx bxs-building'></i>
+        City Watch
+      </a>
+      <nav class="nav">
+        <a href="CityWatch-User-Home.html">Home</a>
+        <a href="CityWatch-Report-New.html" class="active">Report Issue</a>
+        <a href="CityWatch-Track.html">Track Reports</a>
+        <a href="CityWatch-About.html">About</a>
+      </nav>
+      <div class="user-menu">
+        <div class="notification-container">
+          <div class="notification-bell" id="notification-bell">
+            <i class='bx bx-bell'></i>
+            <div class="notification-count" id="notification-count"></div>
+          </div>
+          <div class="notification-dropdown" id="notification-dropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+            </div>
+            <div class="notification-list" id="notification-list">
+              <!-- Notifications will be inserted here -->
+            </div>
+          </div>
+        </div>
+        <div class="user-avatar" id="user-avatar">U</div>
+        <span id="user-name">User</span>
+        <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+    <!-- Main Content -->
+  <main class="main-content">
+    <h1 class="main-title">Have a problem? Submit a report and we'll look into it.</h1>
+    
+    <div class="form-card">
+      <form id="report-form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="category" class="form-label">Category: <span class="required">*</span></label>
+          <select id="category" class="form-input" required>
+            <option value="" disabled selected>-- Select category --</option>
+            <option value="road-and-traffic">Road and Traffic</option>
+            <option value="waste-management">Waste Management</option>
+            <option value="flooding-and-drainage">Flooding and Drainage</option>
+            <option value="public-safety">Public Safety</option>
+            <option value="utilities">Utilities (water/electricity/gas)</option>
+            <option value="other">Other</option>
+          </select>
+          <!-- keep a hidden #title input for backward compatibility with existing JS that may read #title -->
+          <input type="hidden" id="title" name="title" value="">
+          <!-- when Others is selected, allow user to provide a custom title -->
+          <input type="text" id="custom-title" class="form-input" placeholder="Enter a short title (optional)" style="margin-top:.6rem; display:none;" />
+        </div>
+
+        <div class="form-group">
+          <label for="description" class="form-label">Description: <span class="required">*</span></label>
+          <textarea 
+            id="description" 
+            class="form-input form-textarea" 
+            placeholder="Describe the issue in detail..."
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="photo" class="form-label">Upload photo: <span class="required">*</span></label>
+          <div class="file-upload">
+            <label for="photo" class="file-upload-button">
+              <i class='bx bx-cloud-upload'></i>
+              Add file
+            </label>
+            <input type="file" id="photo" accept="image/*" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="location" class="form-label">Location Details: <span class="required">*</span></label>
+          <label for="fullAddress" class="address-label">Barangay:
+          <select id="location" class="form-input" required>
+            <option value="" disabled selected>-- Select area (Mangaldan) --</option>
+            <option value="Alitaya">Alitaya</option>
+            <option value="Amansabina">Amansabina</option>
+            <option value="Anolid">Anolid</option>
+            <option value="Banaoang">Banaoang</option>
+            <option value="Bantayan">Bantayan</option>
+            <option value="Bari">Bari</option>
+            <option value="Bateng">Bateng</option>
+            <option value="Buenlag">Buenlag</option>
+            <option value="David">David</option>
+            <option value="Embarcadero">Embarcadero</option>
+            <option value="Gueguesangen">Gueguesangen</option>
+            <option value="Guesang">Guesang</option>
+            <option value="Guiguilonen">Guiguilonen</option>
+            <option value="Guilig">Guilig</option>
+            <option value="Inlambo">Inlambo</option>
+            <option value="Lanas">Lanas</option>
+            <option value="Landas">Landas</option>
+            <option value="Maasin">Maasin</option>
+            <option value="Macayug">Macayug</option>
+            <option value="Malabago">Malabago</option>
+            <option value="Navaluan">Navaluan</option>
+            <option value="Nibaliw">Nibaliw</option>
+            <option value="Osiem">Osiem</option>
+            <option value="Palua">Palua</option>
+            <option value="Poblacion">Poblacion</option>
+            <option value="Pogo">Pogo</option>
+            <option value="Salaan">Salaan</option>
+            <option value="Salay">Salay</option>
+            <option value="Talogtog">Talogtog</option>
+            <option value="Tebag">Tebag</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+  <label for="fullAddress" class="address-label">Full Address:
+  </label>
+  <textarea id="fullAddress" name="fullAddress" class="form-input line-textarea" placeholder="House No., Street, Subdivision, Landmark, etc." required></textarea>
+  <p class="note">Note: Please include house number, street, and landmarks for accurate location.</p>
+</div>
+
+
+      </form>
+    </div>
+
+    <div class="action-buttons">
+      <button type="submit" form="report-form" class="submit-button" id="submit-btn">
+        Submit
+      </button>
+    </div>
+
+    <div id="status-message" class="status-message" style="display: none;"></div>
+
+    <!-- Success view (hidden by default) -->
+    <div id="report-success" style="display:none;margin-top:2rem;text-align:center">
+      <div style="max-width:520px;margin:0 auto;padding:3rem 2rem;background:transparent">
+        <div style="font-size:44px;color:#2563eb;margin-bottom:10px"><i class='bx bx-check-circle'></i></div>
+        <h2 style="color:#2563eb;margin-bottom:8px">Your report has been submitted!</h2>
+        <p style="color:#6b7280;margin-bottom:20px">You can track its status under 'My Reports'</p>
+        <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+          <button id="goto-reports" style="background:#2563eb;color:#fff;border:none;padding:.8rem 1.4rem;border-radius:10px;cursor:pointer;font-weight:700">Go to My Reports</button>
+          <a href="#" id="back-to-form" style="color:#2563eb;text-decoration:none">Back</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="footer-logo">
+          <i class='bx bxs-building'></i>
+          <span>City Watch</span>
+        </div>
+        <h3>Every report helps <br> protect the community</h3>
+      </div>
+      
+        <!-- Quick Links removed per request -->
+      
+      <div class="footer-section">
+        <p>Contact Us</p>
+        <div class="contact-item">
+          <i class='bx bx-envelope'></i>
+          <span>citywatch@gmail.com</span>
+        </div>
+        <div class="contact-item">
+          <i class='bx bx-phone'></i>
+          <span>(123) 456-789</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      © 2025 City Watch | Municipal Issue Reporting and Tracking Platform
+    </div>
+  </footer>
+
+  <script src="user-notifications.js"></script>
+  <script src="transitions.js"></script>
+  <script src="CityWatch-report-new.js"></script>
+  <script>
+    // Toggle 'Other' input for location select and ensure the form posts the chosen area as address
+    (function(){
+      const locSel = document.getElementById('location');
+      const locOther = document.getElementById('location-other');
+      const form = document.getElementById('report-form');
+
+      if (locSel && locOther) {
+        locSel.addEventListener('change', () => {
+          if (locSel.value === 'Other') {
+            locOther.style.display = 'block';
+            locOther.focus();
+          } else {
+            locOther.style.display = 'none';
+            locOther.value = '';
+          }
+        });
+      }
+
+      // On submit, if Other is used copy to address field name expected by the previous script
+      if (form) {
+        form.addEventListener('submit', () => {
+          try {
+            // If user typed an Other value, set the select's value to that so the existing JS picks it up
+            if (locSel && locOther && locSel.value === 'Other' && locOther.value.trim()) {
+              // create or reuse a hidden input named 'location' so the formData builder in CityWatch-report-new.js reads address
+              // the existing script reads document.getElementById('location').value — replace the select value temporarily
+              locSel.value = locOther.value.trim();
+            }
+          } catch (e) { /* noop */ }
+        });
+      }
+    })();
+
+    // Initialize notifications
+    document.addEventListener('DOMContentLoaded', () => {
+      // Ensure the notifications system is initialized after page load
+      if (typeof initNotifications === 'function') {
+        initNotifications();
+      }
+    });
+  </script>
+  <script>
+    (function initUserHeader(){
+      try{
+        const user = JSON.parse(localStorage.getItem('cw_user') || '{}');
+        const nameEl = document.getElementById('user-name');
+        const avatarEl = document.getElementById('user-avatar');
+        if (nameEl && user.name) nameEl.textContent = user.name;
+        if (avatarEl) avatarEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
+      } catch(_) {}
+    })();
+    function logout(){
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      localStorage.removeItem('cw_user_role');
+      window.location.href = 'CityWatch-Login-New.html';
+    }
+  </script>
+  <script>
+    // Sync hidden #title with selected #category and support a custom title input when 'others' is chosen
+    (function syncCategoryTitle(){
+      const cat = document.getElementById('category');
+      const titleHidden = document.getElementById('title');
+      const customTitle = document.getElementById('custom-title');
+      if(!cat || !titleHidden) return;
+      const friendly = (v)=>{
+        return {
+          'road-and-traffic':'Road and Traffic',
+          'waste-management':'Waste Management',
+          'flooding-and-drainage':'Flooding and Drainage',
+          'public-safety':'Public Safety',
+          'utilities':'Utilities',
+          'other':'Other'
+        }[v] || v;
+      };
+
+      function updateHidden(){
+        const v = cat.value;
+  if (v === 'other'){
+          // show custom title input and use its value for hidden title
+          if(customTitle) customTitle.style.display = 'block';
+          titleHidden.value = (customTitle && customTitle.value.trim()) ? customTitle.value.trim() : '';
+        } else {
+          if(customTitle) customTitle.style.display = 'none';
+          titleHidden.value = friendly(v);
+        }
+      }
+
+      // initial update
+      updateHidden();
+
+      cat.addEventListener('change', ()=>{ updateHidden(); });
+      if(customTitle){
+  customTitle.addEventListener('input', ()=>{ if(cat.value === 'other') titleHidden.value = customTitle.value.trim(); });
+      }
+    })();
+  </script>
+</body>
+</html>

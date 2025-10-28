@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - User Home</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="transition.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background-color: #f8fafc; color: #1e293b; line-height: 1.6; }
+
+    /* Header */
+    .header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+    .header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+    .logo i { font-size: 2rem; }
+    .nav { display: flex; gap: 2rem; align-items: center; }
+    .nav a { color: #374151; text-decoration: none; font-weight: 500; transition: color 0.2s; }
+    .nav a:hover, .nav a.active { color: #2563eb; }
+    .user-menu { display: flex; align-items: center; gap: 1rem; }
+    .user-avatar { width: 32px; height: 32px; background-color: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.875rem; }
+    .logout-btn { background-color: #dc2626; color: white; border: none; border-radius: 6px; padding: 0.5rem 1rem; cursor: pointer; font-weight: 500; transition: background-color 0.2s; }
+    .logout-btn:hover { background-color: #b91c1c; }
+
+    /* Notification Styles */
+    .notification-container { position: relative; }
+    
+    .notification-bell {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-bell:hover {
+      background-color: #f1f5f9;
+    }
+    
+    .notification-bell i {
+      font-size: 1.5rem;
+      color: #64748b;
+    }
+    
+    .notification-count {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background-color: #dc2626;
+      color: white;
+      border-radius: 50%;
+      min-width: 18px;
+      height: 18px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 4px;
+      display: none;
+    }
+    
+    .notification-dropdown {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 320px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      z-index: 1000;
+    }
+    
+    .notification-header {
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .notification-header h3 {
+      margin: 0;
+      font-size: 1rem;
+      color: #1e293b;
+    }
+    
+    .notification-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding: 0.5rem 0;
+    }
+    
+    .notification-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .notification-item:hover {
+      background-color: #f8fafc;
+    }
+    
+    .notification-item.unread {
+      background-color: #eff6ff;
+    }
+    
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    
+    .notification-message {
+      font-size: 0.875rem;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+    
+    .notification-time {
+      font-size: 0.75rem;
+      color: #64748b;
+    }
+
+ .hero {
+  width: auto;            /* let it shrink to fit content */
+  max-width: 1550px;      /* optional, keeps it from being too wide */
+  margin: 1rem auto;      /* margin all around, centered horizontally */
+  height: auto;
+  top: 120%;           /* height adjusts to image */
+  overflow: hidden;
+  border-radius: 30px;    /* rounded corners on the container */
+}
+
+.hero img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  display: block;         /* removes extra space below image */
+}
+
+
+
+.getting-started {
+  position: relative; 
+  padding-bottom: 2rem;
+  background-color: #f8fafc;
+  overflow: hidden;
+  z-index: 0; /* make sure content sits above overlay */
+}
+
+/* Left circle */
+.getting-started::before {
+  content: "";
+  position: absolute;
+  top: 20%;
+  left: -80px;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
+  border-radius: 50%;
+  opacity: 0.5;
+  filter: blur(40px); /* makes it soft and gradient-y */
+  z-index: 0;
+}
+
+/* Right circle */
+.getting-started::after {
+  content: "";
+  position: absolute;
+  bottom: 10%;
+  right: -80px;
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, #2563eb 0%, #3b82f6 50%, #60a5fa 100%);
+  border-radius: 50%;
+  opacity: 0.5;
+  filter: blur(50px);
+  z-index: 0;
+}
+
+
+/* Make sure the content sits above the circles */
+.getting-started-content {
+  position: relative;
+  z-index: 1;
+}
+
+    .getting-started-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  /* Add this to push content lower */
+  padding-top: 6rem; /* increase top padding */
+}
+
+    .section-title { text-align: center; font-size: 2.5rem; font-weight: bold; color: #2563eb; margin-bottom: 1rem; }
+    .section-subtitle { text-align: center; font-size: 1.1rem; color: #64748b; margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto; }
+    .steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 4rem; /* pushes the 3 columns lower */
+  margin-bottom: 3rem;
+}
+
+/* Overlay Image */
+.overlay-image {
+  position: absolute;
+  bottom: 0;          /* push it to the bottom of the section */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 0;         /* behind steps content */
+  width: 100%;
+  max-width: 1585px;  /* keep your desktop size */
+  pointer-events: none;
+}
+
+.overlay-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+    .step { background-color: white; border: 2px solid #e2e8f0; border-radius: 12px; padding: 2rem; text-align: center; transition: transform 0.2s, box-shadow 0.2s; }
+    .step:hover { transform: translateY(-4px); box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
+    .step-number { background-color: #2563eb; color: white; width: 3rem; height: 3rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; margin: 0 auto 1rem; }
+    .step h3 { font-size: 1.3rem; color: #1e293b; margin-bottom: 1rem; }
+    .step p { color: #64748b; line-height: 1.6; }
+
+    .cta-section { text-align: center; padding: 2rem 0; }
+    .cta-button { background-color: #2563eb; color: white; border: none; border-radius: 8px; padding: 1rem 2rem; font-size: 1.2rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s; text-decoration: none; display: inline-block; }
+    .cta-button:hover { background-color: #1d4ed8; }
+
+    /* Footer */
+    .footer {
+      background-color: #1e40af;
+      color: white;
+      padding: 3rem 0 2rem;
+      margin-top: 15rem;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+
+      display: flex;
+      justify-content: space-between;  /* pushes logo left, contact right */
+      align-items: flex-start;          /* aligns text nicely at the top */
+      flex-wrap: wrap;                  /* keeps it neat on smaller screens */
+      gap: 2rem;
+    }
+
+    .footer-section p {
+      color: #FFF;
+      margin-bottom: 1rem;
+      margin-top: 70px;
+      font-size: 20px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: normal;
+    }
+
+    .footer-section h3 {
+      color: #FFF;
+      margin-bottom: 150px;
+      font-size: 45px;
+      opacity: 0.9;
+    }
+
+    .footer-section a {
+      color: white;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 0.5rem;
+      opacity: 0.9;
+    }
+
+    .footer-section a:hover {
+      opacity: 1;
+    }
+
+      .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .footer-logo i {
+        font-size: 1.5rem;
+      }
+
+      .footer-logo span {
+        font-size: 25px;
+        font-weight: 600;
+      }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .copyright {
+  text-align: center;
+  position: relative;
+  top: 20px; 
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+    @media (max-width: 768px) {
+      .header-content { flex-direction: column; gap: 1rem; }
+      .nav { gap: 1rem; }
+      .hero h1 { font-size: 2rem; }
+      .hero p { font-size: 1rem; }
+      .section-title { font-size: 2rem; }
+      .steps { grid-template-columns: 1fr; }
+      .footer-content { grid-template-columns: 1fr; text-align: center; }
+    }
+
+ @media (max-width: 1200px) {
+  .overlay-image {
+    max-width: 1200px;
+  }
+}
+@media (max-width: 768px) {
+  .overlay-image {
+    max-width: 90%;
+    top: 60%;
+  }
+}
+@media (max-width: 480px) {
+  .overlay-image {
+    max-width: 100%;
+    top: 65%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .hero {
+    width: 95%;      /* almost full width */
+    border-radius: 20px;
+  }
+  .overlay-image {
+    width: 95%;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    width: 100%;
+    border-radius: 15px;
+  }
+  .steps {
+    grid-template-columns: 1fr; /* stack cards */
+    margin-top: 2rem;
+  }
+  .overlay-image {
+    width: 100%;
+    top: 200%;   /* adjust overlay for smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    width: 100%;
+    border-radius: 10px;
+  }
+  .overlay-image {
+    width: 100%;
+    top: 180%;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <a href="CityWatch-User-Home.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+      <nav class="nav">
+        <a href="CityWatch-User-Home.html" class="active">Home</a>
+        <a href="CityWatch-Report-New.html">Report Issue</a>
+        <a href="CityWatch-Track.html">Track Reports</a>
+        <a href="CityWatch-About.html">About</a>
+      </nav>
+      <div class="user-menu">
+        <div class="notification-container">
+          <div class="notification-bell" id="notification-bell">
+            <i class='bx bx-bell'></i>
+            <div class="notification-count" id="notification-count"></div>
+          </div>
+          <div class="notification-dropdown" id="notification-dropdown">
+            <div class="notification-header">
+              <h3>Notifications</h3>
+            </div>
+            <div class="notification-list" id="notification-list">
+              <!-- Notifications will be inserted here -->
+            </div>
+          </div>
+        </div>
+        <div class="user-avatar" id="user-avatar">U</div>
+        <span id="user-name">User</span>
+        <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+  <img src="hero.png" alt="Hero Image">
+</section>
+
+  <!-- Getting Started -->
+  <section class="getting-started">
+    <div class="getting-started-content">
+      <h2 class="section-title">Getting Started with City Watch</h2>
+      <p class="section-subtitle">Help your community stay safe in just a few clicks. Report issues, track progress, and stay updated, all in one platform</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Report an Issue</h3>
+          <p>See something that needs attention? Report it easily through the web portal.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Track Your Report</h3>
+          <p>Use your report reference number to check the status and see updates as actions are taken.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Stay Updated</h3>
+          <p>View past reports you submitted and receive notifications when issues are resolved or updated.</p>
+        </div>
+      </div>
+      <div class="cta-section">
+        <a href="CityWatch-Report-New.html" class="cta-button">Report Now</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="footer-logo">
+          <i class='bx bxs-building'></i>
+          <span>City Watch</span>
+        </div>
+        <h3>Every report helps <br> protect the community</h3>
+      </div>
+      
+        <!-- Quick Links removed per request -->
+      
+      <div class="footer-section">
+        <p>Contact Us</p>
+        <div class="contact-item">
+          <i class='bx bx-envelope'></i>
+          <span>citywatch@gmail.com</span>
+        </div>
+        <div class="contact-item">
+          <i class='bx bx-phone'></i>
+          <span>(123) 456-789</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="copyright">
+      © 2025 City Watch | Municipal Issue Reporting and Tracking Platform
+    </div>
+  </footer>
+
+  <script>
+    function ensureAuth() {
+      const token = localStorage.getItem('cw_token');
+      const role = localStorage.getItem('cw_user_role');
+      if (!token) { window.location.href = 'CityWatch-Login-New.html'; return false; }
+      // Users and admins can view; if admin prefer their home:
+      if (role === 'admin') {
+        // Keep as is or redirect if you want:
+        // window.location.href = 'CityWatch-Admin-Dashboard.html';
+      }
+      return true;
+    }
+    function logout() {
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      localStorage.removeItem('cw_user_role');
+      window.location.href = 'CityWatch-Login-New.html';
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!ensureAuth()) return;
+      const user = JSON.parse(localStorage.getItem('cw_user') || '{}');
+      document.getElementById('user-name').textContent = user.name || 'User';
+      document.getElementById('user-avatar').textContent = (user.name || 'U').charAt(0).toUpperCase();
+    });
+  </script>
+  <script src="./user-notifications.js"></script>
+  <script src="transitions.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.background {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: #FFFFFF;
+    z-index: -2;
+  }
+
+  /* bg overlay */
+  .overlay {
+    position: absolute;
+    top: 50%; left: 0;
+    width: 100%; height: 100%;
+    background: url('municipal-overlay.png') no-repeat center center/cover;
+    z-index: -1;
+  }
+
+ /* header */
+  header {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+  }
+  
+  .logo-top {
+    width: 150px;
+  }
+  
+
+/* Signup card */
+.signup-container {
+  background: white;
+  width: 30%;
+  padding: 2rem;
+  border-radius: 15px;
+  box-shadow: 0px 5px 15px rgba(0,0,0,0.1);
+  text-align: left;
+}
+
+.back-link {
+  font-size: 0.85rem;
+  color: #000000;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-link:hover{
+    color: #0033dc;
+    text-decoration: underline;
+}
+
+.signup-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+label {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  display: block;
+  font-weight: 500;
+}
+
+.signup-container input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.signup-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #2a65f5;
+  color: white;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s ease;
+}
+
+.signup-btn:hover {
+  background: #0019aa;
+}
+
+.input-group {
+    position: relative;
+    width: 100%;
+  }
+  
+  .input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+  
+  .input-group .toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 40%;
+    transform: translateY(-50%);
+    font-size: 1.2rem;
+    color: #666;
+    cursor: pointer;
+  }
+  

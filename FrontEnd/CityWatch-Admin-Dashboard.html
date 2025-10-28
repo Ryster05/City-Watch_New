@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Admin Dashboard</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <link href="transition.css" rel="stylesheet">
+  <link href="notification-bell.css" rel="stylesheet">
+  <script src="transitions.js" defer></script>
+  <script src="notification-bell.js" defer></script>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background:#f4f6fa; color:#1e293b; }
+
+    /* Header styles copied from user-side to ensure identical logo, shapes and spacing */
+    .header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+    .header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+    .logo i { font-size: 2rem; }
+    /* Keep admin nav but use user spacing/hover rules for exact match */
+    .admin-nav, .nav { display:flex; gap:2rem; align-items:center; }
+    .admin-nav a, .nav a { color:#374151; text-decoration:none; font-weight:500; transition: color 0.2s; padding:6px 8px; border-radius:6px; }
+    .admin-nav a:hover, .admin-nav a.active, .nav a:hover, .nav a.active { color:#2563eb; }
+    .user-menu { display:flex; align-items:center; gap:1rem; }
+    .user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem }
+    .logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer; font-weight:600; transition: background-color 0.2s; }
+    .logout-btn:hover { background:#b91c1c; }
+  /* Notification bell */
+  .notif-btn { position:relative; background:transparent; border:none; cursor:pointer; padding:6px; border-radius:8px; }
+  .notif-badge { position:absolute; top:2px; right:2px; background:#ef4444; color:#fff; font-size:11px; padding:2px 6px; border-radius:999px; font-weight:700; display:inline-block; min-width:18px; text-align:center }
+  .notif-dropdown { position:absolute; right:0; top:48px; width:360px; max-height:420px; overflow:auto; background:#fff; border:1px solid #e6eef8; box-shadow:0 12px 40px rgba(2,6,23,0.16); border-radius:12px; display:none; z-index:1200; padding:8px }
+  .notif-dropdown.active { display:block }
+  .notif-item { padding:12px 10px; border-bottom:1px solid #eef2f7; display:flex; gap:10px; align-items:center }
+  .notif-item.unread { background:#f0f8ff }
+  .notif-avatar { width:40px; height:40px; border-radius:50%; background:#2563eb; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0 }
+  .notif-body { flex:1; padding:0 10px }
+  .notif-body .meta { color:#0f172a; font-style:italic; font-weight:500 }
+  .notif-body .divider { height:8px }
+  .notif-time { color:#94a3b8; font-size:12px; white-space:nowrap }
+  .notif-actions { display:flex; gap:8px; align-items:center }
+  .notif-footer { display:flex; justify-content:flex-end; padding:8px 6px 2px; }
+  .notif-footer a { color:#2563eb; text-decoration:none; font-weight:600 }
+
+    /* Main */
+    .container { max-width:1200px; margin: 1.25rem auto 2rem; padding: 0 2rem; }
+    .page-title { font-weight:800; color:#1e40af; margin-bottom:1rem; }
+
+    /* Stats */
+    .stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem; margin-bottom:1rem; }
+    .stat { background:#fff; border-radius:10px; border:1px solid #e5e7eb; padding: .9rem 1rem; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+    .stat h4 { font-size:.9rem; color:#475569; margin-bottom:.35rem; }
+    .stat small { color:#94a3b8; }
+    .stat .num { font-size:1.6rem; font-weight:800; color:#1e293b; padding-top:.25rem; }
+
+    /* Filters/Search */
+    .toolbar { display:flex; gap:.75rem; align-items:center; margin: .75rem 0 1rem; }
+    .search { flex:1; }
+    .search input { width:100%; padding:.6rem .9rem; border:1px solid #e2e8f0; border-radius:8px; background:#fff; }
+    .select { padding:.55rem .8rem; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#334155; }
+
+    /* Table */
+    .table-wrap { background:#fff; border-radius:10px; border:1px solid #e2e8f0; overflow:hidden; box-shadow:0 2px 6px rgba(0,0,0,.04); }
+    table { width:100%; border-collapse:collapse; font-size:.9rem; }
+    thead th { background:#0f52ba; color:#fff; text-align:left; padding:.7rem .9rem; }
+  thead th:last-child { text-align:center; vertical-align:middle }
+    tbody td { padding:.65rem .9rem; border-top:1px solid #eef2f7; }
+    tbody tr:nth-child(odd) { background:#f9fbff; }
+  /* unified status badge styles (matches Reports page) */
+  .status-badge, .badge { display:inline-block; padding:0.35rem 0.9rem; border-radius:999px; font-weight:700; font-size:0.875rem; text-transform:capitalize; }
+  .status-badge.pending, .badge.pending { background:#fef1f2; color:#e11d48; }
+  .status-badge.in-progress, .badge.in-progress { background:#ecfdf5; color:#059669; }
+  .status-badge.resolved, .badge.resolved { background:#f0fdf4; color:#15803d; }
+    /* Unified action button (match reports page) */
+    .btn-action {
+      display:inline-flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      background:#fff;
+      border:1px solid #e6eef9;
+      color:#0f172a;
+      padding:.35rem .6rem;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:.92rem;
+      box-shadow:0 1px 0 rgba(2,6,23,0.04);
+      transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+      min-width:80px;
+      max-width:120px;
+      text-align:center;
+      text-decoration:none;
+      white-space:normal;
+      line-height:1.05;
+    }
+    .btn-action:hover{ background:#f8fafc; transform:translateY(-2px); box-shadow:0 6px 18px rgba(2,6,23,0.06); }
+  .action-cell { text-align:center; vertical-align:middle; width:150px }
+
+    /* Details modal */
+    .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:1rem; z-index:1000; }
+    .modal.active { display:flex; }
+    .modal-card { background:#fff; border-radius:12px; max-width:720px; width:100%; box-shadow:0 10px 30px rgba(0,0,0,.2); overflow:hidden; }
+    .modal-card.highlight { box-shadow: 0 12px 50px rgba(37,99,235,0.28); transform: translateY(-6px); transition: transform .24s ease, box-shadow .24s ease; }
+    .modal-head { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid #e5e7eb; }
+    .modal-title { font-weight:800; color:#1e293b; }
+    .close-btn { background:none; border:1px solid #e2e8f0; border-radius:8px; padding:.35rem .6rem; cursor:pointer; }
+    .modal-body { padding:1rem 1.25rem; }
+    .meta { display:flex; gap:1rem; flex-wrap:wrap; color:#64748b; font-size:.9rem; margin:.5rem 0 1rem; }
+    .meta div { display:flex; align-items:center; gap:.35rem; }
+    .form-row { display:flex; gap:.75rem; flex-wrap:wrap; margin:.5rem 0; }
+    .select, .textarea { padding:.55rem .8rem; border:1px solid #e2e8f0; border-radius:8px; background:#fff; color:#334155; }
+    .textarea { width:100%; min-height:90px; }
+    .actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:.75rem; }
+  .btn-primary { background:#2563eb; color:#fff; border:none; border-radius:999px; padding:.6rem 1.2rem; cursor:pointer; font-weight:800; font-size:1rem; box-shadow: 0 8px 20px rgba(37,99,235,0.18); display:inline-block; min-width:84px; text-align:center; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(37,99,235,0.22); }
+  .btn-primary:active { transform: translateY(0); box-shadow: 0 6px 12px rgba(37,99,235,0.14); }
+
+    @media (max-width:768px){ .toolbar { flex-direction:column; align-items:stretch; } }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+  <a href="CityWatch-Admin-Dashboard.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+      <nav class="admin-nav">
+        <a href="CityWatch-Admin-Dashboard.html" class="active">Dashboard</a>
+        <a href="CityWatch-Admin-Reports.html">Reports</a>
+        <a href="CityWatch-Admin-User.html">Users</a>
+        <a href="CityWatch-Admin-Analytics.html">Analytics</a>
+        <a href="CityWatch-Admin-Notification.html">Notifications</a>
+      </nav>
+        <div class="user-menu">
+            <div class="user-avatar" id="user-avatar">A</div>
+            <span id="user-name">Admin</span>
+            <button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+        </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2 class="page-title">Dashboard</h2>
+    <section class="stats">
+      <div class="stat"><h4>Total Reports:</h4><small>Last 30 days</small><div class="num" id="stat-total">0</div></div>
+      <div class="stat"><h4>Pending:</h4><small>Last 30 days</small><div class="num" id="stat-pending">0</div></div>
+      <div class="stat"><h4>In-progress:</h4><small>Last 30 days</small><div class="num" id="stat-inprog">0</div></div>
+      <div class="stat"><h4>Resolved:</h4><small>Last 30 days</small><div class="num" id="stat-resolved">0</div></div>
+    </section>
+
+    <!-- Weekly chart -->
+    <section style="margin:18px 0;">
+      <div class="table-wrap" style="padding:18px;">
+        <h3 style="margin:0 0 12px;color:#1e40af;font-weight:700">Weekly Report Submission</h3>
+        <div style="width:100%; height:260px;"><canvas id="weeklyChart" style="width:100%; height:100%;"></canvas></div>
+      </div>
+    </section>
+
+    <div class="toolbar">
+      <div class="search"><input type="text" id="search-id" placeholder="Search by ID..." /></div>
+      <select id="filter-status" class="select">
+        <option value="">All</option>
+              <option value="new">New</option>
+        <option value="in_progress">In-progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+        </div>
+
+    <div class="table-wrap">
+      <h3 style="margin:0 0 12px;color:#1e40af;font-weight:700">Recent Reports</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:12%">Report ID</th>
+            <th style="width:36%">Category</th>
+            <th style="width:18%">Date Submitted</th>
+            <th style="width:16%">Status</th>
+            <th style="width:18%">Action</th>
+          </tr>
+        </thead>
+        <tbody id="reports-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+
+  <!-- Details Modal (unified) -->
+  <div id="details-modal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-head">
+        <div class="modal-title" id="details-category">Category</div>
+        <button class="close-btn" id="details-close">Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="meta">
+          <div><i class='bx bx-hash'></i><span id="details-ref">Ref:</span></div>
+          <div><i class='bx bx-calendar'></i><span id="details-date">Date:</span></div>
+          <div><i class='bx bx-user'></i><span id="details-reporter">Reporter:</span></div>
+          <div><i class='bx bx-map'></i><span id="details-location">Location:</span></div>
+          <div><i class='bx bx-error-circle'></i><span id="details-status">Status:</span></div>
+        </div>
+        <div style="margin:.5rem 0 1rem; color:#1f2937;">
+          <strong>Description</strong>
+          <div id="details-description" style="margin-top:.35rem; color:#374151;"></div>
+        </div>
+        <div id="details-photo" style="display:flex;justify-content:center;padding:8px 0"></div>
+        <div class="form-row">
+          <label for="details-status-select"><strong>Update Status</strong></label>
+          <select id="details-status-select" class="select">
+            <option value="new">pending</option>
+            <option value="in_progress">in-progress</option>
+            <option value="resolved">resolved</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button id="details-save" class="btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function ensureAdmin(){
+      const token = localStorage.getItem('cw_token');
+      const role = localStorage.getItem('cw_user_role');
+      if (!token){ window.location.href = 'CityWatch-Login-New.html'; return false; }
+      if (role !== 'admin'){ window.location.href = 'CityWatch-User-Home.html'; return false; }
+      return true;
+    }
+    function logout(){
+      localStorage.removeItem('cw_token');
+      localStorage.removeItem('cw_user');
+      localStorage.removeItem('cw_user_role');
+      window.location.href = 'CityWatch-Login-New.html';
+    }
+    const API_BASE = (location.origin === 'null' || location.protocol === 'file:') ? 'http://localhost:3000' : '';
+
+  // In-memory store for reports
+  let reportsStore = [];
+
+  async function loadReports(){
+      try{
+        const token = localStorage.getItem('cw_token');
+
+        // 1) Try to fetch recent reports server-side (limit=10, newest first)
+        let recent = [];
+        try{
+          const rres = await fetch(`${API_BASE}/api/admin/reports?limit=10&sort=-createdAt`, { headers: { 'Authorization': `Bearer ${token}` } });
+          if(rres.ok){ const rdata = await rres.json(); recent = rdata.reports || rdata || []; }
+        }catch(e){ console.warn('recent fetch failed', e); }
+
+        // 2) Try to fetch summary counts from a summary endpoint (optional on server)
+        let totalCount = null, pending = null, inprog = null, resolved = null;
+        try{
+          const sres = await fetch(`${API_BASE}/api/admin/reports/summary`, { headers: { 'Authorization': `Bearer ${token}` } });
+          if(sres.ok){ const s = await sres.json(); totalCount = s.total || s.count || null; pending = s.pending || s.new || 0; inprog = s.in_progress || s.inprog || 0; resolved = s.resolved || 0; }
+        }catch(e){ /* summary not available */ }
+
+        // 3) If summary endpoint not available, fall back to fetching all reports to compute stats
+        if(totalCount === null){
+          try{
+            const fres = await fetch(`${API_BASE}/api/admin/reports`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if(fres.ok){ const fdata = await fres.json(); const all = fdata.reports || fdata || [];
+              totalCount = Array.isArray(all) ? all.length : 0;
+              pending = (all || []).filter(r=>r.status==='new').length;
+              inprog = (all || []).filter(r=>r.status==='in_progress').length;
+              resolved = (all || []).filter(r=>r.status==='resolved').length;
+            }
+          }catch(e){ console.warn('fallback stats fetch failed', e); }
+        }
+
+        // Update store for quick access: store recent results (if server returned recent), otherwise full fetch result will be used
+        reportsStore = recent.slice();
+
+        // Update stats UI (use computed values or 0 fallback)
+        document.getElementById('stat-total').textContent = totalCount !== null ? totalCount : (reportsStore.length || 0);
+        document.getElementById('stat-pending').textContent = pending !== null ? pending : 0;
+        document.getElementById('stat-inprog').textContent = inprog !== null ? inprog : 0;
+        document.getElementById('stat-resolved').textContent = resolved !== null ? resolved : 0;
+
+        // Render recent reports (prioritize 'new' reports, limit display to 5)
+            (function(){
+              const recentList = reportsStore.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+              const newReports = recentList.filter(r=> (r.status||'')=== 'new');
+              const others = recentList.filter(r=> (r.status||'')!== 'new');
+              let toDisplay = newReports.concat();
+              if(toDisplay.length < 5){ toDisplay = toDisplay.concat(others.slice(0, 5 - toDisplay.length)); }
+              toDisplay = toDisplay.slice(0,5);
+              renderTable(toDisplay);
+            })();
+
+            // Start polling for recent reports every 10s to simulate real-time
+            if(window.__recentReportsPolling !== true){
+              window.__recentReportsPolling = true;
+              setInterval(async ()=>{
+                try{
+                  const token = localStorage.getItem('cw_token');
+                  const rres = await fetch(`${API_BASE}/api/admin/reports?limit=10&sort=-createdAt`, { headers: { 'Authorization': `Bearer ${token}` } });
+                  if(!rres.ok) return;
+                  const rdata = await rres.json();
+                  const latest = rdata.reports || rdata || [];
+                  // compare ids/referenceNumbers
+                  const currIds = new Set(reportsStore.map(r=>r.id||r._id||r.referenceNumber));
+                  const newestId = latest.length? (latest[0].id||latest[0]._id||latest[0].referenceNumber) : null;
+                  if(newestId && !currIds.has(newestId)){
+                    // update store and re-render (prioritize 'new' reports, limit to 5)
+                    reportsStore = latest.slice();
+                    (function(){
+                      const recentList = reportsStore.slice().sort((a,b)=> new Date(b.createdAt) - new Date(a.createdAt));
+                      const newReports = recentList.filter(r=> (r.status||'')=== 'new');
+                      const others = recentList.filter(r=> (r.status||'')!== 'new');
+                      let toDisplay = newReports.concat();
+                      if(toDisplay.length < 5){ toDisplay = toDisplay.concat(others.slice(0, 5 - toDisplay.length)); }
+                      toDisplay = toDisplay.slice(0,5);
+                      renderTable(toDisplay);
+                    })();
+                    // bump notification refresh too
+                    refreshNotifications().catch(()=>{});
+                  }
+                }catch(e){ console.warn('recent poll error', e); }
+              }, 10000);
+            }
+        // Render weekly chart: compute counts for the last 7 days.
+        try{
+          const counts = [0,0,0,0,0,0,0];
+          const labels = [];
+          const today = new Date();
+          // build labels for last 7 days (weekday short names)
+          for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(today.getDate()-i); labels.push(d.toLocaleDateString('en-US',{weekday:'short'})); }
+          const start = new Date(); start.setDate(today.getDate()-6); start.setHours(0,0,0,0);
+
+          // Try to use server data for accuracy. Prefer a full list from the server; fallback to reportsStore (recent) if server endpoints are limited.
+          let sourceReports = [];
+          try{
+            const token = localStorage.getItem('cw_token');
+            const resp = await fetch(`${API_BASE}/api/admin/reports`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if(resp.ok){ const d = await resp.json(); sourceReports = d.reports || d || []; }
+          }catch(err){
+            // ignore - will fallback to in-memory recent list
+            sourceReports = reportsStore.slice();
+          }
+
+          if(!sourceReports || sourceReports.length===0){ sourceReports = reportsStore.slice(); }
+
+          sourceReports.forEach(r=>{
+            try{
+              const t = new Date(r.createdAt || r.createdAt || r.createdAt);
+              if(isNaN(t)) return;
+              const diff = Math.floor((t - start)/(1000*60*60*24));
+              if(diff>=0 && diff<7) counts[diff]++;
+            }catch(err){ /* skip malformed dates */ }
+          });
+          renderWeeklyChart(labels, counts);
+        }catch(e){ console.error('chart error', e); }
+
+    // (listeners are attached once on DOMContentLoaded)
+      }catch(err){ console.error('loadReports error', err); }
+    }
+
+    function fmtDate(s){ const d = new Date(s); return d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); }
+    function escapeHtml(t){ const div = document.createElement('div'); div.textContent = t||''; return div.innerHTML; }
+
+    // Chart helper
+    let weeklyChart = null;
+    function renderWeeklyChart(labels, data){
+      try{
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        if(weeklyChart) weeklyChart.destroy();
+        weeklyChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [{ label: 'Reports', data: data, fill:true, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.08)', tension:0.35 }]
+          },
+          options: { plugins:{legend:{display:false}}, scales:{ y:{ beginAtZero:true } } }
+        });
+      }catch(e){ console.error('renderWeeklyChart error', e); }
+    }
+
+    function renderTable(rows){
+      const tbody = document.getElementById('reports-body');
+      if(!rows || rows.length===0){
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:1rem; color:#64748b;">No reports found</td></tr>';
+        return;
+      }
+        tbody.innerHTML = rows.map(r=>{
+        const statusClass = (r.status==='new') ? 'pending' : (r.status==='in_progress' ? 'in-progress' : 'resolved');
+        const statusLabel = (r.status==='new') ? 'pending' : (r.status==='in_progress' ? 'in-progress' : 'resolved');
+        return `<tr>
+          <td><code>${escapeHtml(r.referenceNumber)}</code></td>
+          <td>${escapeHtml(r.category || '')}</td>
+          <td>${fmtDate(r.createdAt)}</td>
+          <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+          <td class="action-cell"><button type="button" class="btn-action" data-ref="${encodeURIComponent(r.referenceNumber)}" data-id="${r.id || r._id || ''}" data-title="${escapeHtml(r.category || '')}" data-status="${statusLabel}" data-date="${fmtDate(r.createdAt)}" data-reporter="${escapeHtml(r.reportedBy?.name || 'Anonymous')}" data-location="${escapeHtml(r.address || '')}" data-description="${escapeHtml(r.description || '')}">View Details</button></td>
+        </tr>`
+      }).join('');
+
+      // attach modal open handlers to unified action buttons
+      tbody.querySelectorAll('.btn-action').forEach(btn => {
+        btn.addEventListener('click', (e)=>{
+          e.preventDefault();
+          const b = e.currentTarget;
+          openDetails({
+            ref: decodeURIComponent(b.getAttribute('data-ref')||''),
+            id: b.getAttribute('data-id'),
+            title: b.getAttribute('data-title'),
+            status: b.getAttribute('data-status'),
+            date: b.getAttribute('data-date'),
+            reporter: b.getAttribute('data-reporter'),
+            location: b.getAttribute('data-location'),
+            description: b.getAttribute('data-description'),
+            notes: b.getAttribute('data-notes')
+          });
+        });
+      });
+    }
+
+    // Modal controls
+    const modal = document.getElementById('details-modal');
+    const closeBtn = document.getElementById('details-close');
+    let currentDetails = null;
+    function openDetails(d){
+      // set header/category
+      const catEl = document.getElementById('details-category'); if(catEl) catEl.textContent = (d.title || d.category || '').toLowerCase();
+      const refEl = document.getElementById('details-ref'); if(refEl) refEl.textContent = `Ref: ${d.ref || '-'}`;
+      const dateEl = document.getElementById('details-date'); if(dateEl) dateEl.textContent = `Date: ${d.date || '-'}`;
+      const repEl = document.getElementById('details-reporter'); if(repEl) repEl.textContent = `Reporter: ${d.reporter || '-'}`;
+      const locEl = document.getElementById('details-location'); if(locEl) locEl.textContent = `Location: ${d.location || '-'}`;
+      const statusEl = document.getElementById('details-status'); if(statusEl) statusEl.textContent = `${d.status || '-'}`;
+      const descEl = document.getElementById('details-description'); if(descEl) descEl.textContent = d.description || '';
+
+      // photo
+      const photoWrap = document.getElementById('details-photo'); if(photoWrap) photoWrap.innerHTML = '';
+      const srcRaw = d.photo || d.photoUrl || (d.description && null) || '';
+      let src = '';
+      if(srcRaw){ if(/^https?:\/\//i.test(srcRaw)) src = srcRaw; else if(srcRaw.startsWith('/')) src = (API_BASE||'') + srcRaw; else src = (API_BASE? API_BASE : '') + '/uploads/reports/' + srcRaw; }
+      if(src && photoWrap){ const img = document.createElement('img'); img.src = src; img.alt='report photo'; img.style.maxWidth='100%'; img.style.borderRadius='8px'; img.addEventListener('error', ()=>{ img.style.display='none'; photoWrap.insertAdjacentHTML('beforeend','<div style="color:#64748b; padding:8px 0;">Image not available</div>'); }); photoWrap.appendChild(img); }
+
+      // prime form
+      const select = document.getElementById('details-status-select');
+      select.value = (d.status==='pending') ? 'new' : (d.status==='in-progress' ? 'in_progress' : (d.status==='resolved' ? 'resolved' : 'new'));
+  // admin notes removed: no notes input to populate
+      currentDetails = d;
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden','false');
+
+      // attach save handler
+      const saveBtn = document.getElementById('details-save');
+      if(saveBtn){
+        saveBtn.onclick = async function(){
+          if(!currentDetails) return;
+          const token = localStorage.getItem('cw_token'); if(!token) return alert('Not authenticated');
+          const newStatus = document.getElementById('details-status-select').value;
+          const reportId = currentDetails.id || currentDetails._id || currentDetails.reportId || currentDetails.ref;
+          try{
+            const res = await fetch(`${API_BASE}/api/admin/reports/${reportId}`, { method:'PATCH', headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ status:newStatus }) });
+            if(!res.ok){ const txt = await res.text().catch(()=>null); alert('Failed to update: '+(txt||res.status)); return; }
+            // refresh
+            modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); loadReports();
+          }catch(e){ console.error(e); alert('Network error'); }
+        };
+      }
+    }
+    closeBtn.addEventListener('click', ()=>{ modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); });
+    modal.addEventListener('click', (e)=>{ if(e.target === modal){ modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); } });
+
+    
+
+    function filterReports(){
+      const q = document.getElementById('search-id').value.trim().toLowerCase();
+      const s = document.getElementById('filter-status').value;
+      let list = reportsStore.filter(r => (r.referenceNumber||'').toLowerCase().includes(q) || (r.category||'').toLowerCase().includes(q));
+      if(s){ if(s==='in_progress') list = list.filter(r=>r.status==='in_progress'); else list = list.filter(r=>r.status===s); }
+      renderTable(list);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!ensureAdmin()) return;
+      try {
+        const user = JSON.parse(localStorage.getItem('cw_user') || '{}');
+        const name = user.name || 'Admin';
+        document.getElementById('user-name').textContent = name;
+        document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase();
+      } catch(_) {}
+      // Attach listeners once
+      const searchInput = document.getElementById('search-id');
+      const statusSelect = document.getElementById('filter-status');
+      searchInput && searchInput.addEventListener('input', filterReports);
+      statusSelect && statusSelect.addEventListener('change', filterReports);
+      const userSearch = document.getElementById('user-search');
+      userSearch && userSearch.addEventListener('input', ()=>{ /* user search removed */ });
+      // user filters removed
+
+      loadReports();
+      // if opened with ?openReport=<id>, open modal for that report after load
+      const params = new URLSearchParams(window.location.search);
+      const openId = params.get('openReport');
+      if(openId){
+        // wait for reports to load
+        setTimeout(async ()=>{
+          const rep = reportsStore.find(r => (r.id==openId || r._id==openId || r.referenceNumber==openId || r.referenceNumber==decodeURIComponent(openId)));
+          if(rep){ openDetails({ ref: rep.referenceNumber || rep.reference, id: rep.id || rep._id || rep.reportId, title: rep.title, status: rep.status, date: fmtDate(rep.createdAt), reporter: (rep.reportedBy && rep.reportedBy.name) || 'Anonymous', location: rep.address || '', description: rep.description || '' }); }
+          else {
+            // try to fetch the report by id from API
+            try{
+              const token = localStorage.getItem('cw_token');
+              const resp = await fetch(`${API_BASE}/api/admin/reports/${encodeURIComponent(openId)}`, { headers:{ 'Authorization': `Bearer ${token}` } });
+              if(resp.ok){ const data = await resp.json(); const r = data.report || data; if(r) openDetails({ ref: r.referenceNumber || r.reference, id: r.id || r._id || r.reportId, title: r.category || r.title || '', status: r.status, date: fmtDate(r.createdAt), reporter: (r.reportedBy && r.reportedBy.name) || 'Anonymous', location: r.address || '', description: r.description || '' }); }
+            }catch(e){ console.error('openReport fetch', e); }
+          }
+        }, 800);
+      }
+    });
+
+    // User management removed from the dashboard
+
+    // --- Notifications ---
+    // fetch notifications and return both items and total
+    async function fetchNotifications(){
+      try{
+        const token = localStorage.getItem('cw_token');
+        const res = await fetch(`${API_BASE}/api/admin/notifications?limit=50`, { headers:{ 'Authorization': `Bearer ${token}` } });
+        if(!res.ok) return { items:[], total:0 };
+        const data = await res.json();
+        const items = data.notifications || data || [];
+        const total = (typeof data.total === 'number') ? data.total : (Array.isArray(items) ? items.length : 0);
+        return { items, total };
+      }catch(e){ console.error('fetchNotifications', e); return { items:[], total:0 }; }
+    }
+
+    function timeAgo(iso){
+      if(!iso) return '';
+      const diff = Math.floor((Date.now() - new Date(iso))/1000);
+      if(diff < 10) return 'just now';
+      if(diff < 60) return `${diff}s`;
+      if(diff < 3600) return `${Math.floor(diff/60)}m`;
+      if(diff < 86400) return `${Math.floor(diff/3600)}h`;
+      return new Date(iso).toLocaleString();
+    }
+
+    function renderNotifDropdown(items, total){
+      const dd = document.getElementById('notif-dropdown');
+      if(!dd) return;
+      if(!items || items.length===0){ dd.innerHTML = '<div class="notif-item"><div class="notif-body"><div class="meta muted">No notifications</div></div></div>'; return; }
+      const itemsToShow = items.slice(0,5);
+      dd.innerHTML = itemsToShow.map(n=>{
+        const cls = n.read ? '' : 'unread';
+        const t = timeAgo(n.createdAt);
+        const avatar = (n.data && n.data.reporter && n.data.reporter.name) ? escapeHtml((n.data.reporter.name||'').charAt(0).toUpperCase()) : (n.data && n.data.userName ? escapeHtml((n.data.userName||'').charAt(0).toUpperCase()) : 'A');
+        const reportId = n.reportId || (n.data && (n.data.reportId || n.data.id || n.data._id)) || '';
+        return `<div class="notif-item ${cls}" data-id="${n.id}" data-report-id="${reportId}">
+          <div class="notif-avatar">${avatar}</div>
+          <div class="notif-body">
+            <div class="meta">${escapeHtml(n.message)}</div>
+            <div class="divider"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+            <div class="notif-time">${t}</div>
+          </div>
+        </div>`;
+      }).join('');
+      // footer: show View all with total when more than 5
+      const footerCount = total || items.length || 0;
+      const footerText = footerCount > 5 ? `View all (${footerCount})` : 'View all';
+      const footerStyle = footerCount > 5 ? '' : 'display:none';
+  dd.innerHTML += `<div class="notif-footer" style="display:flex;gap:8px;justify-content:space-between;align-items:center"><a id="notif-viewall" href="CityWatch-Admin-Notification.html" style="${footerStyle}">${footerText}</a><button id="notif-mark-all" style="background:#0f172a;color:#fff;border:none;padding:.4rem .6rem;border-radius:8px;cursor:pointer;font-weight:700;font-size:.85rem">Mark all read</button></div>`;
+
+      // attach click handler to each notification: mark read only (no details shown)
+      dd.querySelectorAll('.notif-item').forEach(item => {
+        item.style.cursor = 'pointer';
+        item.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const nid = item.getAttribute('data-id');
+          const token = localStorage.getItem('cw_token');
+          try{
+            // mark as read
+            if(nid){ await fetch(`${API_BASE}/api/admin/notifications/${nid}`, { method:'PATCH', headers:{ 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify({ read:true }) }).catch(()=>{}); }
+          }catch(e){ console.error('mark read', e); }
+          // close dropdown
+          if(dd){ dd.classList.remove('active'); dd.setAttribute('aria-hidden','true'); }
+          // only mark as read and refresh the notification list (do not open details)
+          await refreshNotifications();
+        });
+      });
+    }
+
+    async function refreshNotifications(){
+      const { items, total } = await fetchNotifications();
+      const unread = Array.isArray(items) ? items.filter(i=>!i.read).length : 0;
+      const badge = document.getElementById('notif-count');
+      if(badge){ if(unread>0){ badge.style.display='inline-block'; badge.textContent = unread>99? '99+': unread; } else { badge.style.display='none'; } }
+      renderNotifDropdown(items, total);
+    }
+
+    // toggle dropdown
+    const notifBtn = document.getElementById('notif-btn');
+    const notifDropdown = document.getElementById('notif-dropdown');
+    if(notifBtn){
+      notifBtn.addEventListener('click', async (e)=>{
+        e.stopPropagation();
+        const active = notifDropdown.classList.toggle('active');
+        notifDropdown.setAttribute('aria-hidden', active? 'false':'true');
+        if(active) await refreshNotifications();
+      });
+    }
+    // close when clicking outside
+    document.addEventListener('click', (e)=>{ if(notifDropdown && !notifDropdown.contains(e.target) && e.target !== notifBtn){ notifDropdown.classList.remove('active'); notifDropdown.setAttribute('aria-hidden','true'); } });
+
+    // poll every 30s
+    setInterval(()=>{ refreshNotifications().catch(()=>{}); }, 30000);
+    // initial load
+    refreshNotifications().catch(()=>{});
+    
+    // Mark all notifications as read (try batch endpoint, fallback to patching each unread)
+    async function markAllNotificationsRead(){
+      const token = localStorage.getItem('cw_token'); if(!token) return alert('Not authenticated');
+      try{
+        const res = await fetch(`${API_BASE}/api/admin/notifications/mark-all-read`, { method:'POST', headers:{ 'Content-Type':'application/json','Authorization': 'Bearer '+token } });
+        if(res.ok){ if(window.__adminNotifications) window.__adminNotifications = window.__adminNotifications.map(n=> ({...n, read:true})); await refreshNotifications(); return; }
+      }catch(e){ /* ignore */ }
+      try{
+        const { items } = await fetchNotifications();
+        const unread = (items||[]).filter(i=>!i.read);
+        await Promise.all(unread.map(n=> fetch(`${API_BASE}/api/admin/notifications/${n.id||n._id}`, { method:'PATCH', headers:{ 'Content-Type':'application/json','Authorization': 'Bearer '+token }, body: JSON.stringify({ read:true }) }).catch(()=>{})));
+        await refreshNotifications();
+      }catch(e){ console.error('markAll error', e); alert('Failed to mark all notifications'); }
+    }
+
+    // wire mark-all button when dropdown rendered
+    document.addEventListener('click', (e)=>{
+      const btn = document.getElementById('notif-mark-all');
+      if(btn) btn.addEventListener('click', async (ev)=>{ ev.stopPropagation(); btn.disabled=true; await markAllNotificationsRead(); btn.disabled=false; });
+    });
+    
+    // --- Preview modal and toast helpers ---
+    function createPreviewModal(){
+      if(document.getElementById('preview-modal')) return;
+      const modal = document.createElement('div'); modal.id='preview-modal'; modal.className='modal'; modal.setAttribute('aria-hidden','true');
+      modal.innerHTML = `
+      <div class="modal-card">
+        <div class="modal-head"><div class="modal-title" id="preview-title">Report Preview</div><button class="close-btn" id="preview-close">Close</button></div>
+        <div class="modal-body">
+          <div style="margin-bottom:.5rem;color:#64748b;font-size:.95rem"><strong id="preview-ref"></strong></div>
+          <div style="margin:.5rem 0"><strong>Title</strong><div id="preview-title-text" style="margin-top:.35rem;color:#374151"></div></div>
+          <div style="margin:.5rem 0"><strong>Description</strong><div id="preview-desc" style="margin-top:.35rem;color:#374151"></div></div>
+          <div style="margin:.5rem 0" class="meta"><div><i class='bx bx-calendar'></i><span id="preview-date"></span></div><div><i class='bx bx-user'></i><span id="preview-reporter"></span></div><div><i class='bx bx-map'></i><span id="preview-location"></span></div></div>
+          <div style="margin-top:1rem"><strong>Status</strong><div id="preview-status" style="margin-top:.35rem"></div></div>
+          <div style="margin-top:.6rem"><strong>Admin Notes</strong><div id="preview-notes" style="margin-top:.35rem;color:#374151"></div></div>
+        </div>
+      </div>`;
+      document.body.appendChild(modal);
+      document.getElementById('preview-close').addEventListener('click', ()=>{ modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); });
+      modal.addEventListener('click', (e)=>{ if(e.target===modal){ modal.classList.remove('active'); modal.setAttribute('aria-hidden','true'); } });
+    }
+
+    function openPreviewModal(r){
+      createPreviewModal();
+      const modal = document.getElementById('preview-modal');
+      document.getElementById('preview-ref').textContent = `Ref: ${r.referenceNumber||r._id||''}`;
+  document.getElementById('preview-title-text').textContent = r.category || r.title || '';
+      document.getElementById('preview-desc').textContent = r.description || '';
+      document.getElementById('preview-date').textContent = (new Date(r.createdAt||r.createdAt)).toLocaleDateString();
+      document.getElementById('preview-reporter').textContent = (r.reportedBy && r.reportedBy.name) || 'Anonymous';
+      document.getElementById('preview-location').textContent = r.address || '';
+      document.getElementById('preview-status').textContent = r.status || '';
+  document.getElementById('preview-notes').textContent = '';
+      modal.classList.add('active'); modal.setAttribute('aria-hidden','false');
+    }
+
+    function showToast(msg){
+      let t = document.getElementById('cw-toast');
+      if(!t){ t = document.createElement('div'); t.id='cw-toast'; t.style.position='fixed'; t.style.right='18px'; t.style.bottom='18px'; t.style.background='#111827'; t.style.color='#fff'; t.style.padding='10px 14px'; t.style.borderRadius='8px'; t.style.boxShadow='0 6px 18px rgba(2,6,23,0.16)'; t.style.zIndex='2000'; document.body.appendChild(t); }
+      t.textContent = msg; t.style.opacity='1'; setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; }, 2400);
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>City Watch - Admin Reports</title>
+	<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+	<link href="transition.css" rel="stylesheet">
+	<link href="notification-bell.css" rel="stylesheet">
+	<script src="transitions.js" defer></script>
+	<script src="notification-bell.js" defer></script>
+	<style>
+		*{box-sizing:border-box;margin:0;padding:0}
+		body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;background:#f3f6fa;color:#1e293b}
+		/* Header copied from user-side to match exact logo, shapes and layout */
+		.header { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 1rem 0; }
+		.header-content { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+		.logo { display: flex; align-items: center; gap: 0.5rem; color: #2563eb; font-weight: bold; font-size: 1.5rem; text-decoration: none; }
+		.logo i { font-size: 2rem; }
+		.admin-nav, .nav { display:flex; gap:2rem; align-items:center; }
+		.admin-nav a, .nav a { color:#374151; text-decoration:none; font-weight:500; transition: color 0.2s; padding:6px 8px; border-radius:6px; }
+		.admin-nav a:hover, .admin-nav a.active, .nav a:hover, .nav a.active { color:#2563eb; }
+		.user-menu { display:flex; align-items:center; gap:1rem; }
+		.user-avatar { width:32px; height:32px; background:#2563eb; color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.875rem }
+		.logout-btn { background:#dc2626; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; cursor:pointer; font-weight:600; transition: background-color 0.2s; }
+		.logout-btn:hover { background:#b91c1c; }
+		.container{max-width:1200px;margin:1.25rem auto;padding:0 20px}
+		h1{color:#1e40af;margin:10px 0 18px}
+
+		/* page-specific */
+		.card-stat { background:#fff;border-radius:12px;padding:18px 20px;border:1px solid #eef4ff; box-shadow: 0 6px 18px rgba(2,6,23,0.04); }
+		.controls { display:flex; gap:.75rem; align-items:center }
+		.controls .search { flex:1 }
+		.input, input[type=text], .select { padding:.65rem .9rem; border-radius:12px; border:1px solid #e9eef8; background:#fff }
+		.select { min-width:140px }
+
+		.table-wrap { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(2,6,23,0.04); }
+		table { width:100%; border-collapse:collapse; }
+		table thead th { background:#0039DC; color:#fff; padding:1rem 1.2rem; border:none; font-weight:600; text-align:left; font-size:0.95rem }
+		table thead th:last-child { text-align:center; vertical-align:middle }
+		table thead th:first-child { border-top-left-radius:12px }
+		table thead th:last-child { border-top-right-radius:12px }
+		tbody tr { background:#fff }
+		tbody tr:nth-child(odd) { background:#fafbfc }
+		tbody td { padding:1rem 1.2rem; border-top:none; color:#1e293b; font-size:0.95rem }
+		tbody td code { color:#2563eb; font-size:0.92rem }
+
+		/* Action button and status styles */
+		.btn-action {
+			display:inline-block;
+			background:#fff;
+			border:1px solid #e6eef9;
+			color:#0f172a;
+			padding:.45rem .9rem;
+			border-radius:8px;
+			cursor:pointer;
+			font-weight:700;
+			font-size:.92rem;
+			box-shadow:0 1px 0 rgba(2,6,23,0.04);
+			transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+			min-width:110px;
+			text-align:center;
+		}
+		.btn-action:hover{
+			background:#f8fafc;
+			transform:translateY(-2px);
+			box-shadow:0 6px 18px rgba(2,6,23,0.06);
+		}
+		
+		/* unified status badge styles (shared with Dashboard) */
+		.status-badge, .badge { display:inline-block; padding:0.35rem 0.9rem; border-radius:999px; font-weight:700; font-size:0.875rem; text-transform:capitalize; }
+		.status-badge.pending, .badge.pending { background:#fef1f2; color:#e11d48; }
+		.status-badge.in-progress, .badge.in-progress { background:#ecfdf5; color:#059669; }
+		.status-badge.resolved, .badge.resolved { background:#f0fdf4; color:#15803d; }
+
+			#pagination { display:flex; gap:4px; align-items:center }
+			#pagination button { 
+				background:#fff;
+				border:1px solid #e2e8f0;
+				padding:6px 10px;
+				border-radius:6px;
+				cursor:pointer;
+				color:#1e293b;
+				font-weight:600;
+				min-width:32px;
+				text-align:center;
+				font-size:0.9rem
+			}
+			#pagination button.active, #pagination button:hover { background:#0039DC; color:#fff; border-color:#0039DC }
+			#pagination button:disabled { opacity:0.5; cursor:not-allowed }		#table-info{ color:#94a3b8; font-size:.85rem }
+
+			/* action cell alignment helper */
+			.action-cell { text-align: center; vertical-align: middle; width:150px; }
+
+		/* status select and action button styles to match provided sample */
+		.status-select {
+			padding:.4rem 1.2rem .4rem .9rem;
+			border-radius:999px;
+			border:1px solid #f6d97a; /* pale yellow border */
+			background: #fff7ed url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%2392400e' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E") no-repeat right 10px center;
+			background-size:12px 12px;
+			color:#92400e; font-weight:700; font-size:.92rem; min-width:120px; appearance:none; -webkit-appearance:none; -moz-appearance:none; cursor:pointer
+		}
+		.status-select:disabled { opacity:0.7; cursor:default }
+		/* primary save button (pill style) */
+		.btn-primary { background:#2563eb; color:#fff; border:none; border-radius:999px; padding:.6rem 1.2rem; cursor:pointer; font-weight:800; font-size:1rem; box-shadow: 0 8px 20px rgba(37,99,235,0.18); display:inline-block; min-width:84px; text-align:center; }
+		.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(37,99,235,0.22); }
+		.btn-primary:active { transform: translateY(0); box-shadow: 0 6px 12px rgba(37,99,235,0.14); }
+		.btn-action {
+			display:inline-flex;
+			flex-direction:column;
+			align-items:center;
+			justify-content:center;
+			background:#fff;
+			border:1px solid #e6eef9;
+			color:#0f172a;
+			padding:.35rem .6rem;
+			border-radius:8px;
+			cursor:pointer;
+			font-weight:700;
+			font-size:.92rem;
+			box-shadow:0 1px 0 rgba(2,6,23,0.04);
+			transition:transform .12s ease,box-shadow .12s ease,background .12s ease;
+			min-width:80px;
+			max-width:120px;
+			text-align:center;
+			white-space:normal; /* allow wrapping */
+			line-height:1.05;
+		}
+		.btn-action:hover{
+			background:#f8fafc;
+			transform:translateY(-2px);
+			box-shadow:0 6px 18px rgba(2,6,23,0.06);
+		}
+
+				.export-btn {
+  background: #16a34a; 
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease-in-out;
+}
+
+.export-btn:hover {
+  background: #15803d; 
+}
+	</style>
+</head>
+<body>
+	<header class="header">
+		<div class="header-content">
+			<a href="CityWatch-Admin-Dashboard.html" class="logo"><i class='bx bxs-building'></i>City Watch</a>
+			<nav class="admin-nav">
+				<a href="CityWatch-Admin-Dashboard.html">Dashboard</a>
+				<a href="CityWatch-Admin-Reports.html" class="active">Reports</a>
+				<a href="CityWatch-Admin-User.html">Users</a>
+				<a href="CityWatch-Admin-Analytics.html">Analytics</a>
+				<a href="CityWatch-Admin-Notification.html">Notifications</a>
+			</nav>
+			<div class="user-menu">
+				<div id="notification-bell"></div>
+				<div style="display:flex;align-items:center;gap:8px">
+					<div class="user-avatar" id="user-avatar">A</div>
+					<span id="user-name">Admin</span>
+				</div>
+				<button class="logout-btn" onclick="logout()"><i class='bx bx-log-out'></i> Logout</button>
+			</div>
+		</div>
+	</header>
+
+	<main class="container">
+		<h1>Reports</h1>
+		<p style="color:#475569">Manage and review reports submitted by users.</p>
+
+		<div style="display:flex;gap:1rem;align-items:center;margin:14px 0">
+			<div style="background:#fff;border-radius:8px;padding:12px 16px;border:1px solid #eef2ff;box-shadow:0 4px 12px rgba(2,6,23,0.04);">
+				<div style="color:#64748b;font-size:.9rem">Total Reports</div>
+				<div id="total-reports" style="font-weight:800;font-size:1.6rem;color:#0f172a;margin-top:6px">0</div>
+			</div>
+				<div style="flex:1;display:flex;gap:.6rem;align-items:center">
+				<input id="search-input" placeholder="Search by ID or category..." style="flex:1;padding:.6rem .9rem;border:1px solid #e2e8f0;border-radius:8px;background:#fff" />
+				<select id="filter-status" class="select"><option value="">All Status</option><option value="new">pending</option><option value="in_progress">in-progress</option><option value="resolved">resolved</option></select>
+								<select id="filter-category" class="select">
+									<option value="">All Category</option>
+									<option value="road-and-traffic">Road and Traffic</option>
+									<option value="waste-management">Waste Management</option>
+									<option value="flooding-and-drainage">Flooding and Drainage</option>
+									<option value="public-safety">Public Safety</option>
+									<option value="utilities">Utilities</option>
+									  <option value="other">Other</option>
+								</select>
+			</div>
+		</div>
+
+		<div class="table-wrap">
+			<table>
+				<thead>
+					<tr>
+						<th style="width:12%">Report ID</th>
+						<th style="width:44%">Category</th>
+						<th style="width:14%">Date Submitted</th>
+						<th style="width:11%">Status</th>
+						<th style="width:14%">Action</th>
+					</tr>
+				</thead>
+				<tbody id="reports-table-body"></tbody>
+			</table>
+			<div style="padding:10px;display:flex;justify-content:space-between;align-items:center">
+				<div id="table-info" style="color:#94a3b8;font-size:.9rem">Showing 0 entries</div>
+				<div id="pagination" style="display:flex;gap:6px;align-items:center"></div>
+			</div>
+		</div>
+
+		<div style="display: flex; justify-content: flex-end; margin: 10px 0;">
+      <button class="export-btn" onclick="window.location.href='/api/export/export'" id="exportBtn">
+        <i class='bx bx-download'></i> Export Excel
+      </button>
+    </div>
+
+
+	</main>
+
+<!-- Report Details Modal (updated to match unified layout) -->
+<div id="report-modal" style="display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(2,6,23,0.45);align-items:center;justify-content:center;z-index:80">
+	<div style="background:#fff;border-radius:10px;max-width:820px;width:96%;padding:18px;border:1px solid #e6eef9;box-shadow:0 12px 40px rgba(2,6,23,0.2);margin:24px auto;">
+		<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">
+			<div>
+				<div id="modal-category" style="font-weight:800;color:#0f172a;font-size:1.05rem; text-transform:lowercase">Category</div>
+				<div style="color:#64748b;margin-top:6px;font-size:0.95rem">
+					<span id="modal-ref" style="margin-right:12px"><i class='bx bx-hash'></i> Ref: -</span>
+					<span id="modal-date" style="margin-right:12px"><i class='bx bx-calendar'></i> Date: -</span>
+					<span id="modal-reporter" style="margin-right:12px"><i class='bx bx-user'></i> Reporter: -</span>
+					<span id="modal-location"><i class='bx bx-map'></i> Location: -</span>
+				</div>
+			</div>
+			<div style="text-align:right">
+				<button onclick="closeReportModal()" style="background:transparent;border:1px solid #e2e8f0;border-radius:8px;padding:.35rem .6rem;cursor:pointer">Close</button>
+			</div>
+		</div>
+
+		<div id="modal-body" style="max-height:64vh;overflow:auto;padding-top:8px;color:#334155;display:grid;grid-template-columns:1fr;gap:12px">
+			<div id="modal-status-line" style="color:#334155;font-weight:600">Status: <span id="modal-status">-</span></div>
+
+			<div>
+				<strong>Description</strong>
+				<div id="modal-description" style="margin-top:.5rem;color:#374151"></div>
+			</div>
+
+			<div id="modal-photo-wrapper" style="display:flex;justify-content:center;align-items:center;padding:8px 0"></div>
+
+			<div style="display:flex;flex-direction:column;gap:8px;">
+				<label for="modal-status-select" style="font-weight:700">Update Status</label>
+				<select id="modal-status-select" class="select" style="max-width:240px">
+					<option value="new">pending</option>
+					<option value="in_progress">in-progress</option>
+					<option value="resolved">resolved</option>
+				</select>
+			</div>
+		</div>
+
+		<div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;align-items:center">
+			<button id="modal-save" class="btn-primary">Save</button>
+		</div>
+	</div>
+</div>
+	<script>
+		function ensureAdmin(){
+			const token = localStorage.getItem('cw_token');
+			const role = localStorage.getItem('cw_user_role');
+			if(!token){ window.location.href='CityWatch-Login-New.html'; return false; }
+			if(role !== 'admin'){ window.location.href='CityWatch-User-Home.html'; return false; }
+			return true;
+		}
+		function logout(){ localStorage.removeItem('cw_token'); localStorage.removeItem('cw_user'); localStorage.removeItem('cw_user_role'); window.location.href='CityWatch-Login-New.html'; }
+		document.addEventListener('DOMContentLoaded', ()=>{
+			if(!ensureAdmin()) return;
+			try{ const user = JSON.parse(localStorage.getItem('cw_user')||'{}'); const name = user.name||'Admin'; document.getElementById('user-name').textContent = name; document.getElementById('user-avatar').textContent = name.charAt(0).toUpperCase(); }catch(_){}
+		});
+	</script>
+
+	<script>
+		const API_BASE = (location.origin === 'null' || location.protocol === 'file:') ? 'http://localhost:3000' : '';
+		// expose for other scripts that may reference window.API_BASE
+		window.API_BASE = API_BASE;
+		let reports = []; // full list
+		let page = 1;
+		const pageSize = 10;
+
+		function fmtDate(s){ if(!s) return ''; const d=new Date(s); return d.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }
+
+		function escapeHtml(s){ if(!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+		async function loadAllReports(){
+			try{
+				const token = localStorage.getItem('cw_token');
+				const res = await fetch(`${API_BASE}/api/admin/reports`, { headers:{ 'Authorization': `Bearer ${token}` } });
+				if(!res.ok){ console.error('Failed to load reports'); return; }
+				const data = await res.json();
+				reports = data.reports || data || [];
+				document.getElementById('total-reports').textContent = reports.length;
+				renderTable();
+			}catch(e){ console.error(e); }
+		}
+
+		function applyFilters(list){
+			const q = document.getElementById('search-input').value.trim().toLowerCase();
+			const st = document.getElementById('filter-status').value;
+			const cat = document.getElementById('filter-category').value;
+			let out = list.filter(r=>{
+				if(q && !( (r.referenceNumber||'').toLowerCase().includes(q) || (r.category||'').toLowerCase().includes(q) )) return false;
+				if(st && r.status !== st) return false;
+				if(cat && (r.category||'').toLowerCase().indexOf(cat)===-1) return false;
+				return true;
+			});
+			return out;
+		}
+
+		function renderTable(){
+			const body = document.getElementById('reports-table-body');
+			const filtered = applyFilters(reports);
+			const total = filtered.length;
+			const pages = Math.max(1, Math.ceil(total / pageSize));
+			if(page > pages) page = pages;
+			const start = (page-1)*pageSize; const slice = filtered.slice(start, start+pageSize);
+			if(slice.length===0){ body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1rem;color:#64748b">No reports found</td></tr>'; }
+			else{
+				body.innerHTML = slice.map(r=>{
+					const statusLabel = (r.status==='new') ? 'pending' : (r.status==='in_progress' ? 'in-progress' : 'resolved');
+					const statusClass = (r.status==='new') ? 'pending' : (r.status==='in_progress' ? 'in-progress' : 'resolved');
+				return `<tr>
+					<td><code>${r.referenceNumber||r._id||''}</code></td>
+					<td>${escapeHtml(r.category||'')}</td>
+					<td>${fmtDate(r.createdAt)}</td>
+					<td>
+						<span class="status-badge ${r.status === 'new' ? 'pending' : r.status === 'in_progress' ? 'in-progress' : 'resolved'}">
+							${r.status === 'new' ? 'Pending' : r.status === 'in_progress' ? 'In Progress' : 'Resolved'}
+						</span>
+					</td>
+					<td class="action-cell">
+						<button class="btn-action" onclick="openReportModal('${r._id||r.id||r.reportId||r.referenceNumber||''}')">View Details</button>
+					</td>
+				</tr>`
+				}).join('');
+				// no modal: keep table rows static (no click handlers)
+			}
+
+			document.getElementById('table-info').textContent = `Showing ${Math.min(total, start+1)} to ${Math.min(total, start+slice.length)} of ${total} entries`;
+			renderPagination(pages);
+		}
+
+		function renderPagination(pages){
+			const pdiv = document.getElementById('pagination'); 
+			pdiv.innerHTML='';
+			
+			// Add previous button
+			const prevBtn = document.createElement('button');
+			prevBtn.innerHTML = '&larr;';
+			prevBtn.disabled = page === 1;
+			prevBtn.addEventListener('click', () => { if (page > 1) { page--; renderTable(); }});
+			pdiv.appendChild(prevBtn);
+			
+			// Add page buttons with ellipsis
+			let start = Math.max(1, page - 2);
+			let end = Math.min(pages, start + 4);
+			
+			if (start > 1) {
+				const firstBtn = document.createElement('button');
+				firstBtn.textContent = '1';
+				firstBtn.addEventListener('click', () => { page = 1; renderTable(); });
+				pdiv.appendChild(firstBtn);
+				
+				if (start > 2) {
+					const ellipsis = document.createElement('span');
+					ellipsis.textContent = '...';
+					ellipsis.style.margin = '0 4px';
+					pdiv.appendChild(ellipsis);
+				}
+			}
+			
+			for(let i = start; i <= end; i++){
+				const btn = document.createElement('button');
+				btn.textContent = i;
+				if (i === page) btn.classList.add('active');
+				btn.addEventListener('click', () => { page = i; renderTable(); });
+				pdiv.appendChild(btn);
+			}
+			
+			if (end < pages) {
+				if (end < pages - 1) {
+					const ellipsis = document.createElement('span');
+					ellipsis.textContent = '...';
+					ellipsis.style.margin = '0 4px';
+					pdiv.appendChild(ellipsis);
+				}
+				const lastBtn = document.createElement('button');
+				lastBtn.textContent = pages;
+				lastBtn.addEventListener('click', () => { page = pages; renderTable(); });
+				pdiv.appendChild(lastBtn);
+			}
+			
+			// Add next button
+			const nextBtn = document.createElement('button');
+			nextBtn.innerHTML = '&rarr;';
+			nextBtn.disabled = page === pages;
+			nextBtn.addEventListener('click', () => { if (page < pages) { page++; renderTable(); }});
+			pdiv.appendChild(nextBtn);
+		}
+
+		// open details modal
+		function openReportModal(id){
+			// try to find by several possible id forms
+			const rpt = reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===id) || reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===(id+''));
+			console.log('openReportModal called, id=', id, 'found report=', rpt);
+			const body = document.getElementById('modal-body');
+			if(!rpt){
+				console.warn('openReportModal: report not found for id', id);
+				if(body) body.innerHTML = '<div style="color:#64748b;padding:12px">Report data unavailable</div>';
+				const modal = document.getElementById('report-modal'); if(modal) modal.style.display='flex';
+				return;
+			}
+			// populate modal fields
+			// normalize location: prefer address fields, then lat/lon, avoid dumping raw objects like {}
+			const locRaw = rpt.address || rpt.location || rpt.addressText || rpt.coords || '';
+			let locationText = '';
+			if(!locRaw || (typeof locRaw === 'object' && Object.keys(locRaw).length === 0)){
+				locationText = '';
+			} else if(typeof locRaw === 'string'){
+				locationText = locRaw;
+			} else if(typeof locRaw === 'object'){
+				// check common coordinate shapes
+				if(('lat' in locRaw) && ('lng' in locRaw)) locationText = `Lat:${locRaw.lat} Lon:${locRaw.lng}`;
+				else if(('latitude' in locRaw) && ('longitude' in locRaw)) locationText = `Lat:${locRaw.latitude} Lon:${locRaw.longitude}`;
+				else if(locRaw.address) locationText = locRaw.address;
+				else if(locRaw.formatted) locationText = locRaw.formatted;
+				else if(locRaw.name) locationText = locRaw.name;
+				else locationText = '';
+			} else {
+				locationText = String(locRaw || '');
+			}
+			const descText = rpt.description || rpt.details || rpt.body || '';
+
+			// set header/meta
+			const catEl = document.getElementById('modal-category'); if(catEl) catEl.textContent = (rpt.category || rpt.title || '').toLowerCase();
+			const refEl = document.getElementById('modal-ref'); if(refEl) refEl.textContent = `Ref: ${rpt.referenceNumber||rpt._id||''}`;
+			const dateEl = document.getElementById('modal-date'); if(dateEl) dateEl.textContent = `Date: ${fmtDate(rpt.createdAt)}`;
+			const repEl = document.getElementById('modal-reporter'); if(repEl) repEl.textContent = `Reporter: ${(rpt.reportedBy && rpt.reportedBy.name) || 'user'}`;
+			const locEl = document.getElementById('modal-location'); if(locEl) locEl.textContent = `Location: ${escapeHtml(locationText || 'Unknown')}`;
+			const statusEl = document.getElementById('modal-status'); if(statusEl) statusEl.textContent = (rpt.status === 'new' ? 'pending' : rpt.status === 'in_progress' ? 'in-progress' : 'resolved');
+			const descEl = document.getElementById('modal-description'); if(descEl) descEl.textContent = descText || '';
+
+			// render image into modal-photo-wrapper if available
+			const srcRaw = rpt.photoUrl || rpt.photo || (rpt.photos && rpt.photos[0]) || rpt.image || (rpt.attachments && (rpt.attachments[0] && (rpt.attachments[0].url || rpt.attachments[0].path))) || '';
+			let src = '';
+			if(srcRaw){
+				if(/^https?:\/\//i.test(srcRaw)) src = srcRaw;
+				else if(srcRaw.startsWith('/')) src = (API_BASE||'') + srcRaw;
+				else if(srcRaw.indexOf('uploads') !== -1) src = (API_BASE? API_BASE + '/' : '') + srcRaw.replace(/^\/+/, '');
+				else src = (API_BASE? API_BASE : '') + '/uploads/reports/' + srcRaw;
+			}
+			const photoWrap = document.getElementById('modal-photo-wrapper');
+			if(photoWrap){ photoWrap.innerHTML = ''; }
+			if(src && photoWrap){
+				const img = document.createElement('img');
+				img.src = src; img.alt = 'report photo'; img.style.maxWidth = '100%'; img.style.borderRadius='8px'; img.style.boxShadow='0 8px 24px rgba(2,6,23,0.12)';
+				img.addEventListener('error', function(){ this.style.display='none'; photoWrap.insertAdjacentHTML('beforeend','<div style="color:#64748b; padding:8px 0;">Image not available</div>'); });
+				photoWrap.appendChild(img);
+			}
+
+			// set status select and notes
+			const sel = document.getElementById('modal-status-select'); if(sel) sel.value = (rpt.status === 'new' ? 'new' : rpt.status === 'in_progress' ? 'in_progress' : 'resolved');
+			// admin notes removed: no notes field to populate
+
+			const modal = document.getElementById('report-modal'); modal.style.display='flex';
+			// attach save handler
+			const saveBtn = document.getElementById('modal-save');
+			if(saveBtn){
+				saveBtn.onclick = async function(){
+					const newStatus = document.getElementById('modal-status-select').value;
+					const token = localStorage.getItem('cw_token'); if(!token){ alert('Not authenticated'); return; }
+					const realId = rpt._id || rpt.id || rpt.reportId;
+					try{
+						const res = await fetch(`${API_BASE}/api/admin/reports/${realId}`, {
+							method:'PATCH',
+							headers:{ 'Content-Type':'application/json', 'Authorization': 'Bearer '+token },
+							body: JSON.stringify({ status: newStatus })
+						});
+						if(!res.ok){ const txt = await res.text().catch(()=>null); alert('Failed to update: '+(txt||res.status)); return; }
+						// update local copy and refresh
+						const idx = reports.findIndex(r=> (r._id||r.id||r.reportId||r.referenceNumber||'') === (rpt._id||r.id||r.reportId||r.referenceNumber||''));
+						if(idx!==-1){ reports[idx].status = newStatus; delete reports[idx].adminNotes; }
+						modal.style.display='none';
+						renderTable();
+					}catch(e){ console.error('update error', e); alert('Network error'); }
+				};
+			}
+		}
+
+		function closeReportModal(){ document.getElementById('report-modal').style.display='none'; }
+
+		async function resolveReport(id, silent){
+			const token = localStorage.getItem('cw_token');
+			if(!token) return alert('Not authenticated');
+			// resolve actual report id from store
+			const rpt = reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===id) || reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===(id+''));
+			const realId = rpt? (rpt._id||r.id||r.reportId) : id;
+			try{
+				const res = await fetch(`${API_BASE}/api/admin/reports/${realId}`, { method: 'PATCH', headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }, body: JSON.stringify({ status: 'resolved' }) });
+				if(!res.ok){ const tx = await res.text().catch(()=>null); console.error('resolve failed', tx); if(!silent) alert('Failed to resolve report'); return; }
+				// update client copy
+				const idx = reports.findIndex(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===id || (r._id||r.id||r.reportId||r.referenceNumber||'')===realId);
+				if(idx!==-1) { reports[idx].status = 'resolved'; }
+				renderTable();
+				if(silent){ closeReportModal(); }
+			}catch(e){ console.error(e); if(!silent) alert('Error resolving report'); }
+		}
+
+		// update status from dropdown
+		async function updateReportStatus(id, newStatus){
+			const token = localStorage.getItem('cw_token');
+			if(!token) return alert('Not authenticated');
+			// resolve actual report from store
+			const rpt = reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===id) || reports.find(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===(id+''));
+			const realId = rpt? (rpt._id||r.id||r.reportId) : id;
+			// optimistic UI: store old value and set new one
+			const idx = reports.findIndex(r=> (r._id||r.id||r.reportId||r.referenceNumber||'')===id || (r._id||r.id||r.reportId||r.referenceNumber||'')===realId);
+			const old = idx!==-1? reports[idx].status : null;
+			if(idx!==-1) reports[idx].status = newStatus;
+			renderTable();
+			try{
+				const res = await fetch(`${API_BASE}/api/admin/reports/${realId}`, { method: 'PATCH', headers: { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }, body: JSON.stringify({ status: newStatus }) });
+				if(!res.ok){ const txt = await res.text().catch(()=>null); console.error('status update failed', txt); if(idx!==-1) reports[idx].status = old; renderTable(); alert('Failed to update status'); }
+			}catch(e){ console.error(e); if(idx!==-1) reports[idx].status = old; renderTable(); alert('Error updating status'); }
+		}
+
+		// modal removed — reporting table is static and editable only via API or separate admin flows
+
+		// filters
+		document.getElementById('search-input').addEventListener('input', ()=>{ page=1; renderTable(); });
+		document.getElementById('filter-status').addEventListener('change', ()=>{ page=1; renderTable(); });
+		document.getElementById('filter-category').addEventListener('change', ()=>{ page=1; renderTable(); });
+
+		// initial load
+		loadAllReports();
+	</script>
+
+	<script>
+  document.getElementById("exportBtn").addEventListener("click", () => {
+    window.location.href = "http://localhost:3000/api/export/export";
+  });
+</script>
+
+
+</body>
+</html>

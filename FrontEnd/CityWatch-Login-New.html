@@ -1,0 +1,300 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Login</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #1d4ed8;
+      z-index: -2;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('municipal-overlay.png') no-repeat center center/cover;
+      z-index: -1;
+    }
+
+    header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    .logo-top {
+      width: 150px;
+    }
+
+    .login-container {
+      background: white;
+      width: 35%;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1;
+    }
+
+    .login-container h2 {
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .login-container h2 span {
+      color: #2a65f5;
+    }
+
+    /* Tabs removed — page now shows only login form */
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .password-field {
+      position: relative;
+      width: 100%;
+    }
+    
+    .password-field input {
+      width: 100%;
+      padding: 12px;
+      padding-right: 40px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }
+    
+    .password-field .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+
+    .login-btn {
+      background: #2a65f5;
+      color: white;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .login-btn:hover{
+      color: #ffffff;
+      background: #0019aa;
+    }
+
+
+    .divider {
+      margin: 15px 0;
+      font-size: 0.8rem;
+      color: gray;
+      position: relative;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: "";
+      position: absolute;
+      height: 1px;
+      width: 40%;
+      background: #ddd;
+      top: 50%;
+    }
+
+    .divider::before {
+      left: 0;
+    }
+
+    .divider::after {
+      right: 0;
+    }
+
+    .signup {
+      font-size: 0.85rem;
+      margin-top: 15px;
+    }
+
+    .signup-small {
+      margin: 8px 0 0;
+      font-size: 0.8rem;
+      color: #6b7280;
+      text-align: center;
+    }
+
+    .signup-small a {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .signup-small a:hover { text-decoration: underline; }
+
+    .signup a {
+      color: #2a65f5;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .signup a:hover{
+      color:#4a003b;
+      text-decoration: underline;
+    }
+
+    .status-message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .status-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-error {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+     .status-info {
+       background-color: #eff6ff;
+       color: #2563eb;
+       border: 1px solid #bfdbfe;
+     }
+
+     .role-selector {
+       display: flex;
+       margin: 15px 0;
+       border-radius: 8px;
+       background-color: #f1f5f9;
+       padding: 4px;
+     }
+
+     .role-option {
+       flex: 1;
+       padding: 8px 12px;
+       text-align: center;
+       border-radius: 6px;
+       cursor: pointer;
+       transition: all 0.2s;
+       font-weight: 500;
+       color: #64748b;
+       font-size: 0.9rem;
+       border: none;
+       background: none;
+     }
+
+     .role-option.active {
+       background-color: white;
+       color: #2a65f5;
+       box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+     }
+
+     .role-option:hover {
+       color: #2a65f5;
+     }
+
+
+     @media (max-width: 768px) {
+       .login-container {
+         width: 90%;
+         margin: 1rem;
+         padding: 1.5rem;
+       }
+     }
+  </style>
+</head>
+<body>
+  <!-- Background + Overlay -->
+  <div class="background"></div>
+  <div class="overlay"></div>
+
+  <header>
+    <img src="logo-white.png" alt="City Watch" class="logo-top">
+  </header>
+
+
+  <div class="login-container">
+
+    <div id="status-message" class="status-message" style="display: none;"></div>
+
+    <!-- Login Form (single) -->
+    <div id="login-form">
+      <h2>Sign in to <span>City Watch.</span></h2>
+
+      <form id="loginForm">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <div class="password-field">
+          <input type="password" id="login-password" placeholder="Password" required>
+          <i class='bx bx-hide toggle-password' data-target="login-password"></i>
+        </div>
+
+  <button type="submit" class="login-btn" id="login-btn">Login</button>
+            <p style="margin-top:8px;">
+              <a href="CityWatch-Reset-Password.html" style="color:#2563eb; text-decoration:none; font-size:0.9rem;">Forgot password?</a>
+            </p>
+        <p class="signup-small">Don't have an account? <a href="CityWatch-SignUp.html">Sign Up</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="CityWatch-login-new.js"></script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+/* ---------- Header (desktop + responsive) ---------- */
+
+/* Global box-sizing (recommended) */
+* { box-sizing: border-box; }
+
+/* Header wrapper */
+.header {
+  background-color: #fff;
+  padding: 10px 180px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Logo */
+.logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0455C0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.logo i { font-size: 1.6rem; }
+
+/* Nav (same behavior as .admin-nav) */
+.nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  white-space: nowrap;
+  flex-shrink: 1;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 0;
+  margin: 0 auto;
+}
+
+/* Hide scrollbar */
+.nav::-webkit-scrollbar { display: none; }
+.nav { -ms-overflow-style: none; scrollbar-width: none; }
+
+.nav a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color .15s ease;
+  padding: 6px 2px;
+  display: inline-block;
+}
+.nav a:hover { color: #0455C0; }
+.nav a.active { color: #0455C0; font-weight: 600; }
+
+/* User menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+.user-avatar {
+  background-color: #0455C0;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+#user-name { color: #333; font-weight: 500; }
+
+/* Logout button */
+.logout-btn {
+  background-color: #e53935;
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.logout-btn:hover { background-color: #c62828; }
+
+/* ----------------- Responsive tweaks ----------------- */
+
+/* Larger screens */
+@media (min-width: 1100px) {
+  .header-content { padding: 12px 40px; }
+  .logo { font-size: 1.45rem; }
+  .nav { gap: 28px; }
+}
+
+/* Medium screens */
+@media (max-width: 900px) {
+  .header-content { padding: 10px 20px; gap: 16px; }
+  .logo { font-size: 1.15rem; }
+  .nav { gap: 16px; }
+  #user-name { display: none; }
+}
+
+/* Mobile layout */
+@media (max-width: 700px) {
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+  }
+
+  .logo { order: 1; align-self: center; }
+
+  .nav {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    gap: 12px;
+    padding: 6px 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .user-menu {
+    order: 3;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 6px;
+  }
+
+  .logout-btn { padding: 6px 10px; font-size: 0.95rem; }
+  .user-avatar { width: 34px; height: 34px; font-size: 0.95rem; }
+}
+
+/* Extra small phones */
+@media (max-width: 420px) {
+  .nav { gap: 10px; }
+  .nav a { font-size: 0.88rem; padding: 5px 2px; }
+  .logo { font-size: 1.05rem; }
+  .logout-btn { padding: 5px 8px; font-size: 0.85rem; }
+}

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Watch - Sign Up</title>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" href="signup-style.css">
+</head>
+
+<body>
+    <!-- Background + Overlay -->
+    <div class="background"></div>
+    <div class="overlay"></div>
+
+    <header>
+        <img src="logo-blue.png" alt="City Watch" class="logo-top">
+    </header>
+
+    <!-- Signup Form -->
+    <div class="signup-container">
+    <a href="CityWatch-Login-New.html" class="back-link">← Go Back</a>
+        <h2>Create your account.</h2>
+
+        <form id="signup-form">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Create a Username" required>
+
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+
+            <label for="password">Password</label>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Your password" required>
+                <i class='bx bx-hide toggle-password' data-target="password"></i>
+            </div>
+
+            <label for="confirm-password">Confirm Password</label>
+            <div class="input-group">
+                <input type="password" id="confirm-password" placeholder="Your password" required>
+                <i class='bx bx-hide toggle-password' data-target="confirm-password"></i>
+            </div>
+
+
+            <button type="submit" class="signup-btn">Sign Up</button>
+        </form>
+    </div>
+
+    <script src="CityWatch-signup.js"></script>
+</body>
+
+</html>

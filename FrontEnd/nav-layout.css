@@ -1,0 +1,166 @@
+/* ---------- Header (desktop + responsive) ---------- */
+
+/* Global box-sizing (recommended) */
+* { box-sizing: border-box; }
+
+/* Header wrapper */
+.header {
+  background-color: #fff;
+  padding: 10px 180px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1400px;   /* same width as your body content */
+  margin: 0 auto;      /* centers the header content */
+  width: 100%;
+}
+/* Logo */
+.logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0455C0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.logo i { font-size: 1.6rem; }
+
+/* Nav: single horizontal line, scrollable if necessary */
+.admin-nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  white-space: nowrap;     /* keep links in a single line */
+  flex-shrink: 1;          /* allow nav to shrink */
+  flex-wrap: nowrap;       /* force single line */
+  overflow-x: auto;        /* horizontal scroll if necessary */
+  -webkit-overflow-scrolling: touch;
+  padding: 6px 0;
+  margin: 0 auto;          /* allow centering inside header-content */
+}
+
+/* hide default scrollbar visually */
+.admin-nav::-webkit-scrollbar { display: none; }
+.admin-nav { -ms-overflow-style: none; scrollbar-width: none; }
+
+.admin-nav a {
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color .15s ease;
+  padding: 6px 2px;
+  display: inline-block;
+}
+
+.admin-nav a:hover { color: #0455C0; }
+.admin-nav a.active { color: #0455C0; font-weight: 600; }
+
+/* User menu */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  white-space: nowrap;
+}
+
+.user-avatar {
+  background-color: #0455C0;
+  color: #fff;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+#user-name { color: #333; font-weight: 500; }
+
+/* Logout button */
+.logout-btn {
+  background-color: #e53935;
+  border: none;
+  color: white;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.logout-btn:hover { background-color: #c62828; }
+
+/* ----------------- Responsive tweaks ----------------- */
+
+/* Larger screens: more horizontal breathing room */
+@media (min-width: 1100px) {
+  .header-content { padding: 12px 40px; }
+  .logo { font-size: 1.45rem; }
+  .admin-nav { gap: 28px; }
+}
+
+/* Medium screens: reduce gaps slightly */
+@media (max-width: 900px) {
+  .header-content { padding: 10px 20px; gap: 16px; }
+  .logo { font-size: 1.15rem; }
+  .admin-nav { gap: 16px; }
+  /* hide textual username early to save space */
+  #user-name { display: none; }
+}
+
+/* Mobile: stack into rows, with centered logo, single-line nav, user menu below */
+@media (max-width: 700px) {
+  .header-content {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+  }
+
+  /* Logo centered on top */
+  .logo { order: 1; align-self: center; }
+
+  /* Keep nav single-line and centered; allow horizontal scroll if needed */
+  .admin-nav {
+    order: 2;
+    width: 100%;
+    justify-content: center;   /* visually center the nav */
+    gap: 12px;
+    padding: 6px 0;
+    /* important: still nowrap, no wrapping to multiple rows */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  /* user menu goes below, centered */
+  .user-menu {
+    order: 3;
+    justify-content: center;
+    gap: 10px;
+    padding-bottom: 6px;
+  }
+
+  /* make logout slightly smaller */
+  .logout-btn { padding: 6px 10px; font-size: 0.95rem; }
+
+  /* reduce avatar size a touch on small phones */
+  .user-avatar { width: 34px; height: 34px; font-size: 0.95rem; }
+}
+
+/* Extra small phones */
+@media (max-width: 420px) {
+  .admin-nav { gap: 10px; }
+  .admin-nav a { font-size: 0.88rem; padding: 5px 2px; }
+  .logo { font-size: 1.05rem; }
+  .logout-btn { padding: 5px 8px; font-size: 0.85rem; }
+}

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Watch - Verify Email</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #1d4ed8;
+      z-index: -2;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('municipal-overlay.png') no-repeat center center/cover;
+      z-index: -1;
+    }
+
+    header {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+
+    .logo-top {
+      width: 150px;
+    }
+
+    .verify-container {
+      background: white;
+      width: 35%;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      z-index: 1;
+    }
+
+    .verify-container h2 {
+      margin-bottom: 10px;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    .verify-container p {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .verify-container input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    .otp-inputs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .otp-inputs input {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      font-size: 1.2rem;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      margin: 0;
+    }
+
+    .otp-inputs input:focus {
+      border-color: #2a65f5;
+      outline: none;
+    }
+
+    .verify-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      background: #2a65f5;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px 0;
+      transition: all 0.3s ease;
+    }
+
+    .verify-btn:hover {
+      background: #0019aa;
+    }
+
+    .verify-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      font-size: 0.9rem;
+      margin-top: 15px;
+      color: #666;
+    }
+
+    .back-link a {
+      color: #2a65f5;
+      text-decoration: none;
+    }
+
+    .back-link a:hover {
+      text-decoration: underline;
+    }
+
+    .status-message {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      text-align: center;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .status-success {
+      background-color: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .status-error {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .status-info {
+      background-color: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+
+    .resend-link {
+      color: #2a65f5;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .resend-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+      .verify-container {
+        width: 90%;
+        margin: 1rem;
+        padding: 1.5rem;
+      }
+
+      .otp-inputs input {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background + Overlay -->
+  <div class="background"></div>
+  <div class="overlay"></div>
+
+  <header>
+    <img src="logo-white.png" alt="City Watch" class="logo-top">
+  </header>
+
+  <div class="verify-container">
+    <div id="status-message" class="status-message"></div>
+
+    <h2>Verify Your Email</h2>
+    <p>We've sent a verification code to your email. Please enter it below to verify your account.</p>
+
+    <form id="verify-form">
+      <div class="otp-inputs">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+        <input type="text" maxlength="1" pattern="[0-9]" inputmode="numeric">
+      </div>
+      <button type="submit" class="verify-btn" id="verify-btn">Verify Email</button>
+    </form>
+
+    <p class="back-link">
+      Didn't receive the code? 
+      <a href="#" class="resend-link" id="resend-code">Resend Code</a>
+    </p>
+  </div>
+
+  <script src="CityWatch-verify-email.js"></script>
+</body>
+</html>

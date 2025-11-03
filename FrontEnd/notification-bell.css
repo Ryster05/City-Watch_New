@@ -1,0 +1,139 @@
+.notification-bell {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    margin: 0 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.notification-bell i {
+    font-size: 1.5rem;
+    color: #475569;
+    transition: color 0.2s;
+}
+
+.notification-bell:hover i {
+    color: #2563eb;
+}
+
+.notification-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 1px solid #e5e7eb;
+    z-index: 1000;
+    display: none;
+    margin-top: 8px;
+}
+
+.notification-dropdown.show {
+    display: block;
+}
+
+.dropdown-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dropdown-header h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.dropdown-header a {
+    font-size: 0.875rem;
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.dropdown-list {
+    padding: 8px 0;
+}
+
+.dropdown-item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    transition: background 0.2s;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #f8fafc;
+}
+
+.dropdown-item.unread {
+    background: #f0f7ff;
+}
+
+.dropdown-item.unread:hover {
+    background: #e0f2fe;
+}
+
+.dropdown-item-avatar {
+    width: 32px;
+    height: 32px;
+    background: #2563eb;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.dropdown-item-content {
+    flex: 1;
+}
+
+.dropdown-item-message {
+    font-size: 0.875rem;
+    color: #1e293b;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.dropdown-item-time {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.dropdown-empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #64748b;
+    font-size: 0.875rem;
+}
